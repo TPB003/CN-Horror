@@ -1,0 +1,23 @@
+# Local settings and temporary files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Optional local development environments
+.venv/
+node_modules/
+__pycache__/
+
+# Generated transfer archives
+*.zip
+*.tar
+*.tar.gz
+
+# Site-specific deployment identity
+.openai/
