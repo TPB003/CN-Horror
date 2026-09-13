@@ -1,0 +1,35 @@
+{
+  "name": "guideng-lianyungang-horror",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "npm run story:compile && tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "typecheck": "tsc -b --pretty false",
+    "story:compile": "node story/compile.mjs",
+    "story:export": "node story/export-novel.mjs",
+    "story:validate": "node story/validate.mjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "inkjs": "^2.4.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.186.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^22.20.2",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/three": "^0.180.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
+  }
+}
