@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify app, story, and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Validate story sources
+        run: npm run story:validate
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Export novel from canonical Ink story
+        run: npm run story:export
+
+      - name: Verify generated novel is synchronized
+        shell: bash
+        run: |
+          if [[ -n "$(git status --porcelain -- novel/)" ]]; then
+            echo "The generated novel differs from the committed Ink source export. Run npm run story:export and commit the result."
+            git status --short -- novel/
+            git diff -- novel/
+            exit 1
+          fi
+
+      - name: Build production site
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser interaction tests
+        run: npm run test:e2e
