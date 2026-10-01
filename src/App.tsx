@@ -34,6 +34,7 @@ function App() {
   const [started, setStarted] = useState(loadSave()?.currentId !== undefined && loadSave()?.currentId !== 'intro');
   const [explored, setExplored] = useState<string[]>(loadSave()?.explored ?? []);
   const [dialog, setDialog] = useState<'map' | 'journal' | 'sources' | 'settings' | null>(null);
+  const [pendingSkipId, setPendingSkipId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [choice, setChoice] = useState('');
   const [answer, setAnswer] = useState('');
@@ -175,9 +176,23 @@ function App() {
     setStarted(true);
     setEndingId(undefined);
     setDialog(null);
+    setPendingSkipId(null);
     setVisited((old) => old.includes(id) ? old : [...old, id]);
     setMessage('');
   }, []);
+
+  // Soft gate for the station-11 name-check puzzle: jumping forward past the
+  // unsolved puzzle (via map, rail dots, nav buttons or keyboard) shows a
+  // non-blocking confirmation instead of hard-locking the route.
+  const guardedGoTo = useCallback((id: string) => {
+    const targetIndex = locations.findIndex((item) => item.id === id);
+    if (pageIndex === 10 && !puzzleSolved && targetIndex > pageIndex) {
+      setDialog(null);
+      setPendingSkipId(id);
+      return;
+    }
+    goTo(id);
+  }, [goTo, locations, pageIndex, puzzleSolved]);
 
   const startJourney = useCallback(async () => {
     if (!story?.chapters.length) return;
@@ -265,7 +280,7 @@ function App() {
     sound.current.cue(pageIndex === 6 ? 'footstep' : pageIndex === 2 ? 'knock' : pageIndex === 7 ? 'whisper' : 'paper');
   };
 
-  const moveNext = async () => {
+  const moveNext = useCallback(async () => {
     if (!chapter) return;
     if (pageIndex === locations.length - 1) {
       setDialog('sources');
@@ -274,8 +289,8 @@ function App() {
     }
     const next = locations[pageIndex + 1];
     setVisited((old) => old.includes(next.id) ? old : [...old, next.id]);
-    goTo(next.id);
-  };
+    guardedGoTo(next.id);
+  }, [chapter, pageIndex, locations, guardedGoTo]);
 
   const chooseEnding = (id: string) => {
     const picked = story?.endings?.find((item) => item.id === id || item.knot === id)
@@ -327,19 +342,34 @@ function App() {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { setDialog(null); return; }
       if (dialog || intro || ending || !chapter) return;
+      // Never hijack typing inside form fields (e.g. the station-11 puzzle input).
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
       if (event.key === 'ArrowRight' && pageIndex < locations.length - 1) void moveNext();
-      if (event.key === 'ArrowLeft' && pageIndex > 0) goTo(locations[pageIndex - 1].id);
+      if (event.key === 'ArrowLeft' && pageIndex > 0) guardedGoTo(locations[pageIndex - 1].id);
       if (event.key.toLowerCase() === 'j') setDialog('journal');
       if (event.key.toLowerCase() === 'm') setDialog('map');
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [dialog, intro, ending, chapter, pageIndex, locations, goTo]);
+  }, [dialog, intro, ending, chapter, pageIndex, locations, goTo, moveNext, guardedGoTo]);
 
   if (loadError) return <main className="fatal-state"><div className="seal">归</div><p>故事暂时没有接上。</p><small>{loadError} · 请重新构建项目</small></main>;
   if (!story) return <main className="loading-state"><span className="loading-lamp" /><p>灯还没有亮</p><small>正在翻开客簿……</small></main>;
 
   const sceneImage = ending ? SCENE_FILES[11] : SCENE_FILES[Math.max(0, pageIndex)];
+  const chapterLabels = useMemo(() => locations.map((item, index) => `第 ${String(index + 1).padStart(2, '0')} 站：${item.title.replace(/^\d+[｜|.、]\s*/, '')}`), [locations]);
+
+  // Preload the current and next chapter's scene images so switching chapters
+  // does not flash an empty backdrop.
+  useEffect(() => {
+    [pageIndex, pageIndex + 1].forEach((index) => {
+      const file = SCENE_FILES[index];
+      if (!file) return;
+      const image = new Image();
+      image.src = `/assets/scenes/${file}.webp`;
+    });
+  }, [pageIndex]);
 
   return (
     <main className={`app-shell ${intro ? 'is-intro' : ''} ${ending ? 'is-ending' : ''}`}>
@@ -365,12 +395,12 @@ function App() {
 
       {intro ? (
         <section className="intro-screen" aria-labelledby="intro-title">
-          <div className="intro-model">{dialog !== 'map' && <VillageCanvas selectedId="01" onSelect={(id) => { const target = locations.find((item) => item.id.endsWith(id) || item.id === id); if (target) goTo(target.id); }} />}</div>
+          <div className="intro-model">{dialog !== 'map' && <VillageCanvas selectedId="01" chapterTitles={chapterLabels} onSelect={(id) => { const target = locations.find((item) => item.id.endsWith(id) || item.id === id); if (target) guardedGoTo(target.id); }} />}</div>
           <div className="intro-copy">
             <p className="eyebrow"><span />二十年前，旧客簿上多出一个名字</p>
             <h1 id="intro-title">归灯<span>，</span><br /><em>先看灯下的影子。</em></h1>
             <p className="intro-lead">一封没有邮戳的信，把沈归带回连云老街。<br />天亮以前，他要从一册被水泡开的客簿里，<br />分清谁的名字被写错，谁又在巷口等他回家。</p>
-            <div className="intro-meta"><span>单人叙事体验</span><i />12 个剧情站点<i /><span>建议戴耳机</span></div>
+            <div className="intro-meta"><span>单人叙事体验</span><i />12 个剧情站点<i /><span>支持静音游玩</span></div>
             {story.chapters[0]?.introQuote && <p className="letter-quote">{story.chapters[0].introQuote}</p>}
             <div className="intro-actions">
               <button className="primary-button" type="button" onClick={() => void startJourney()}><span className="button-lamp" />举灯入巷 <span className="button-arrow">↗</span></button>
@@ -394,7 +424,7 @@ function App() {
         </section>
       ) : chapter ? (
         <section className="chapter-screen" key={chapter.id} aria-labelledby="chapter-title">
-          <ChapterRail chapters={locations} currentIndex={pageIndex} visited={visited} onNavigate={goTo} onOpenMap={() => setDialog('map')} />
+          <ChapterRail chapters={locations} currentIndex={pageIndex} visited={visited} onNavigate={guardedGoTo} onOpenMap={() => setDialog('map')} />
 
           <div className="chapter-copy">
             <div className="chapter-meta"><span className="chapter-number">{String(pageIndex + 1).padStart(2, '0')}</span><span className="meta-rule" /><span>{chapter.weather ?? '雾气压低，雨没有停'}</span><span className="meta-dot">·</span><span>{chapter.lantern ?? '灯火在雾中偏向一侧'}</span></div>
@@ -418,13 +448,23 @@ function App() {
             {message && <div className="toast-message" role="status">{message}</div>}
             <div className="chapter-footer">
               <div className="source-access"><button type="button" onClick={() => setDialog('sources')}>史料与创作边界 <span>↗</span></button><span>·</span><span>{chapter.sources.length} 条来源</span></div>
-              <div className="chapter-nav"><button type="button" disabled={pageIndex === 0} onClick={() => goTo(locations[pageIndex - 1].id)} aria-label="上一站">←</button><span>{String(pageIndex + 1).padStart(2, '0')} <i>/</i> {String(locations.length).padStart(2, '0')}</span><button type="button" onClick={() => void moveNext()} aria-label={pageIndex === locations.length - 1 ? '查看结局选择' : '下一站'}>{pageIndex === locations.length - 1 ? '✓' : '→'}</button></div>
+              <div className="chapter-nav"><button type="button" disabled={pageIndex === 0} onClick={() => guardedGoTo(locations[pageIndex - 1].id)} aria-label="上一站">←</button><span>{String(pageIndex + 1).padStart(2, '0')} <i>/</i> {String(locations.length).padStart(2, '0')}</span><button type="button" onClick={() => void moveNext()} aria-label={pageIndex === locations.length - 1 ? '查看结局选择' : '下一站'}>{pageIndex === locations.length - 1 ? '✓' : '→'}</button></div>
             </div>
           </div>
 
           <div className="scene-caption"><span className="caption-line" /><span>{chapter.scene}</span><span className="caption-place">连云老街 · 叙事空间</span></div>
           <div className="sound-cue" aria-hidden="true"><span className={soundOn ? 'wave active' : 'wave'} /><span>{soundOn ? '雨声停了一拍' : '开启声音，听见巷子'}</span></div>
           <div className="chapter-clue-preview"><span className="clue-preview-mark">簿</span><span><i>手记线索</i><b>{collected.size ? `${collected.size} 项已收` : '尚未找到'}</b></span><button type="button" onClick={() => setDialog('journal')} aria-label="查看已收线索">↗</button></div>
+          {pendingSkipId && (
+            <div className="skip-confirm" role="alertdialog" aria-labelledby="skip-confirm-title" aria-describedby="skip-confirm-desc">
+              <h2 id="skip-confirm-title">核名尚未完成</h2>
+              <p id="skip-confirm-desc">第 11 站「旅社账簿」的核名谜题还没有解开。继续前进就会跳过它，账簿合上便不再打开。</p>
+              <div className="skip-confirm-actions">
+                <button type="button" className="primary-button" onClick={() => setPendingSkipId(null)}>返回解谜 <span className="button-arrow">↩</span></button>
+                <button type="button" className="quiet-button" onClick={() => { const target = pendingSkipId; if (target) goTo(target); }}>仍要跳过</button>
+              </div>
+            </div>
+          )}
         </section>
       ) : null}
 
@@ -433,9 +473,9 @@ function App() {
           <header className="panel-header"><div><span className="panel-kicker">{dialog === 'map' ? '街区沙盘' : dialog === 'journal' ? '随身记录' : dialog === 'sources' ? '资料簿' : '声场设置'}</span><h2>{dialog === 'map' ? '沿石街往里走' : dialog === 'journal' ? '沈归的手记' : dialog === 'sources' ? '史料与创作边界' : '把声音留在巷里'}</h2></div><button type="button" className="close-button" onClick={() => setDialog(null)} aria-label="关闭">×</button></header>
           {dialog === 'map' ? <>
             <p className="map-intro">拖动旋转、滚轮缩放。点亮的灯火可直接进入对应章节；地图为叙事路线模型，非实测测绘图。</p>
-            <div className="map-canvas"><VillageCanvas selectedId={String(Math.max(1, pageIndex + 1)).padStart(2, '0')} onSelect={(id) => { const target = locations.find((item, index) => item.id.endsWith(id) || String(index + 1).padStart(2, '0') === id); if (target) goTo(target.id); }} /></div>
+            <div className="map-canvas"><VillageCanvas selectedId={String(Math.max(1, pageIndex + 1)).padStart(2, '0')} chapterTitles={chapterLabels} onSelect={(id) => { const target = locations.find((item, index) => item.id.endsWith(id) || String(index + 1).padStart(2, '0') === id); if (target) guardedGoTo(target.id); }} /></div>
             <div className="map-legend"><span><i className="legend-gold" />当前所在</span><span><i className="legend-ash" />已到访</span><span><i className="legend-red" />异象线索</span></div>
-            <div className="map-locations">{locations.map((item, index) => <button type="button" key={item.id} className={`${currentId === item.id ? 'selected' : ''} ${visited.includes(item.id) ? 'arrived' : ''}`} onClick={() => goTo(item.id)} aria-label={`第 ${String(index + 1).padStart(2, '0')} 站：${item.title.replace(/^\d+[｜|.、]\s*/, '')}`}><small>{String(index + 1).padStart(2, '0')}</small><span>{item.title.replace(/^\d+[｜|.、]\s*/, '')}</span><i>{visited.includes(item.id) ? '●' : '○'}</i></button>)}</div>
+            <div className="map-locations">{locations.map((item, index) => <button type="button" key={item.id} className={`${currentId === item.id ? 'selected' : ''} ${visited.includes(item.id) ? 'arrived' : ''}`} onClick={() => guardedGoTo(item.id)} aria-label={`第 ${String(index + 1).padStart(2, '0')} 站：${item.title.replace(/^\d+[｜|.、]\s*/, '')}`}><small>{String(index + 1).padStart(2, '0')}</small><span>{item.title.replace(/^\d+[｜|.、]\s*/, '')}</span><i>{visited.includes(item.id) ? '●' : '○'}</i></button>)}</div>
           </> : dialog === 'journal' ? <JournalPanel chapters={locations} collected={collected} /> : dialog === 'sources' ? <SourcePanel chapter={chapter} /> : <div className="settings-panel"><p>声音在你点击「举灯入巷」后才会播放。重要听声线索也会显示为文字提示。</p><button className="primary-button" type="button" onClick={() => void toggleSound()}>{soundOn ? '关闭环境声' : '开启环境声'}</button><label>环境音量 <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => updateVolume(Number(event.target.value))} /><b>{Math.round(volume * 100)}%</b></label><button className="quiet-button" type="button" onClick={newGame}>清除存档并重新开始</button></div>}
         </section>
       </div>}

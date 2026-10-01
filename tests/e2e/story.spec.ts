@@ -125,7 +125,12 @@ test('the mobile screen keeps its primary interactions inside the viewport', asy
     expect(copy).not.toBeNull();
     expect(copy!.x).toBeGreaterThanOrEqual(0);
     expect(copy!.x + copy!.width).toBeLessThanOrEqual(390);
-    if (index < 11) await page.getByRole('button', { name: '下一站' }).click();
+    if (index < 11) {
+      await page.getByRole('button', { name: '下一站' }).click();
+      // Station 11 (index 10) shows a soft skip-confirm when the name-check puzzle is unsolved.
+      const skipAnyway = page.getByRole('button', { name: '仍要跳过' });
+      if (await skipAnyway.count()) await skipAnyway.click();
+    }
   }
 
   await page.getByRole('button', { name: '打开街区模型与路线' }).click();

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -113,12 +113,29 @@ function addHouse(scene: THREE.Scene, x: number, z: number, w: number, d: number
   }
 }
 
-export default function VillageCanvas({ selectedId, onSelect }: { selectedId: string; onSelect: (id: string) => void }) {
+export default function VillageCanvas({ selectedId, onSelect, chapterTitles = [] }: {
+  selectedId: string;
+  onSelect: (id: string) => void;
+  chapterTitles?: string[];
+}) {
   const host = useRef<HTMLDivElement>(null);
   const callback = useRef(onSelect);
   const activeId = useRef(selectedId);
+  const hotspotButtons = useRef<Array<HTMLButtonElement | null>>([]);
+  const routeIds = useMemo(() => Array.from({ length: 12 }, (_, index) => String(index + 1).padStart(2, '0')), []);
   callback.current = onSelect;
   activeId.current = selectedId;
+
+  const focusHotspot = (index: number) => {
+    const buttons = hotspotButtons.current;
+    const target = buttons[(index + buttons.length) % buttons.length];
+    target?.focus();
+  };
+
+  const onHotspotKeyDown = (event: React.KeyboardEvent, index: number) => {
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') { event.preventDefault(); focusHotspot(index + 1); }
+    else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') { event.preventDefault(); focusHotspot(index - 1); }
+  };
 
   useEffect(() => {
     if (!host.current) return;
@@ -281,16 +298,32 @@ export default function VillageCanvas({ selectedId, onSelect }: { selectedId: st
     let frame = 0;
     let lastFrame = 0;
     let animation = 0;
+    const buttons = Array.from(element.querySelectorAll<HTMLButtonElement>('.hotspot-button'));
+    const projected = new THREE.Vector3();
     const render = (time: number) => {
       animation = requestAnimationFrame(render);
       if (time - lastFrame < 33) return;
       lastFrame = time;
       controls.update();
       if (!reduceMotion) frame += 0.014;
-      markers.forEach((marker) => {
+      const width = element.clientWidth;
+      const height = element.clientHeight;
+      markers.forEach((marker, index) => {
         const isSelected = marker.userData.chapterId === activeId.current;
         marker.position.y = Number(marker.userData.baseY) + (reduceMotion ? (isSelected ? 0.05 : 0.025) : isSelected ? 0.05 + Math.sin(frame * 2) * 0.08 : 0.025 + Math.sin(frame + marker.position.x) * 0.022);
         (marker.material as THREE.MeshStandardMaterial).emissiveIntensity = isSelected ? (reduceMotion ? 0.8 : 1.2) : 0.5;
+        // Keep the keyboard hotspot button aligned with its 3D marker.
+        const button = buttons[index];
+        if (button && width && height) {
+          projected.copy(marker.position).project(camera);
+          if (projected.z > 1) {
+            button.style.display = 'none';
+          } else {
+            button.style.display = '';
+            button.style.left = `${(projected.x * 0.5 + 0.5) * width}px`;
+            button.style.top = `${(-projected.y * 0.5 + 0.5) * height}px`;
+          }
+        }
       });
       renderer.render(scene, camera);
     };
@@ -313,5 +346,18 @@ export default function VillageCanvas({ selectedId, onSelect }: { selectedId: st
     };
   }, []);
 
-  return <div className="village-canvas" ref={host} aria-label="可旋转缩放的连云老街三维路线模型" />;
+  return <div className="village-canvas" ref={host} role="group" aria-label="可旋转缩放的连云老街三维路线模型">
+    {routeIds.map((chapterId, index) => {
+      return <button
+        key={chapterId}
+        type="button"
+        ref={(element) => { hotspotButtons.current[index] = element; }}
+        className="hotspot-button"
+        aria-label={chapterTitles[index] ?? `第 ${chapterId} 站`}
+        title={chapterTitles[index] ?? `第 ${chapterId} 站`}
+        onClick={() => callback.current(chapterId)}
+        onKeyDown={(event) => onHotspotKeyDown(event, index)}
+      ><span aria-hidden="true">{chapterId}</span></button>;
+    })}
+  </div>;
 }

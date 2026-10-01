@@ -6,8 +6,11 @@ export function StoryReader({ lines, page, onPageChange, ariaLive = false }: {
   onPageChange: (next: number) => void;
   ariaLive?: boolean;
 }) {
-  const pageCount = Math.max(1, Math.ceil(lines.length / 2));
-  const visible = lines.slice(page * 2, page * 2 + 2);
+  // One paragraph per page: paragraphs render in full (no line-clamp), and a
+  // single paragraph always fits the fixed-height story panel on desktop and
+  // mobile, so no text is silently clipped.
+  const pageCount = Math.max(1, lines.length);
+  const visible = lines.slice(page, page + 1);
   return <>
     <div className="story-text" aria-live={ariaLive ? 'polite' : undefined}>
       {visible.map((line, index) => <p key={`${page}-${index}`}>{line}</p>)}

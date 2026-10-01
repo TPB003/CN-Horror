@@ -81,11 +81,13 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .chapter-dots { position: relative; display: flex; flex: 1; flex-direction: column; justify-content: space-around; align-items: center; margin: 17px 0; }
 .chapter-dots::before { position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 50%; width: 1px; background: rgba(205,201,190,.19); content: ''; }
 .chapter-dot { position: relative; display: grid; width: 29px; height: 29px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #727873; cursor: pointer; font-size: 8px; transition: .25s; }
+/* Hit area expanded to 44×44 without breaking the rail layout. */
+.chapter-dot::after { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
 .chapter-dot i { position: absolute; right: -4px; bottom: -2px; width: 5px; height: 5px; border-radius: 50%; background: transparent; }
 .chapter-dot.visited i { background: #95866d; }
 .chapter-dot.active { border: 1px solid rgba(227,190,127,.7); background: rgba(17,20,20,.8); color: #e8c791; box-shadow: 0 0 18px rgba(218,167,97,.15); }
 .chapter-dot:hover { color: #e9d5af; }
-.rail-map { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid var(--border); background: rgba(13,17,18,.55); color: var(--lamp); cursor: pointer; font-size: 18px; }
+.rail-map { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid var(--border); background: rgba(13,17,18,.55); color: var(--lamp); cursor: pointer; font-size: 18px; }
 .chapter-copy { position: absolute; left: 13.1vw; top: 13.2%; width: min(565px, 43vw); height: min(72%, 660px); display: flex; flex-direction: column; justify-content: flex-start; }
 .chapter-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-height: 22px; color: #969a93; font-size: 9px; letter-spacing: .12em; }
 .chapter-number { color: var(--lamp); font: 12px var(--serif); }
@@ -96,9 +98,8 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .story-text { max-height: 270px; margin-top: 22px; overflow: hidden; color: #cecec6; font-size: 13px; line-height: 1.95; letter-spacing: .045em; text-shadow: 0 1px 8px rgba(0,0,0,.75); }
 .story-text p { margin: 0 0 10px; }
 .story-text p::first-letter { color: #e1bf8a; }
-.story-text p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
 .story-page-controls { display: flex; align-items: center; gap: 10px; width: max-content; margin-top: 3px; color: #99958a; font-size: 9px; letter-spacing: .14em; }
-.story-page-controls button { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid rgba(220,212,195,.24); background: rgba(13,17,18,.6); color: var(--lamp); cursor: pointer; }
+.story-page-controls button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(220,212,195,.24); background: rgba(13,17,18,.6); color: var(--lamp); cursor: pointer; }
 .story-page-controls button:disabled { opacity: .35; cursor: default; }
 .prop-object { position: absolute; z-index: -1; top: 39%; left: calc(100% + 9vw); width: min(21vw, 245px); margin: 0; opacity: .8; filter: drop-shadow(0 17px 22px rgba(0,0,0,.55)); }
 .prop-object img { display: block; width: 100%; max-height: 230px; object-fit: contain; mix-blend-mode: screen; mask-image: radial-gradient(ellipse, #000 48%, transparent 77%); }
@@ -135,7 +136,7 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .source-access button span { margin-left: 4px; }
 .chapter-nav { display: flex; align-items: center; gap: 13px; color: #b1b0a6; font: 10px var(--serif); letter-spacing: .12em; }
 .chapter-nav span i { margin: 0 5px; color: #666b66; font-style: normal; }
-.chapter-nav button { display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid rgba(214,201,176,.37); background: rgba(10,12,12,.35); color: #e4c48d; cursor: pointer; font-size: 15px; transition: .2s; }
+.chapter-nav button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(214,201,176,.37); background: rgba(10,12,12,.35); color: #e4c48d; cursor: pointer; font-size: 15px; transition: .2s; }
 .chapter-nav button:hover { background: rgba(144,80,52,.35); }
 .scene-caption { position: absolute; right: 4.7vw; bottom: 8.5%; display: flex; align-items: center; gap: 9px; max-width: 300px; color: rgba(211,207,196,.58); font-size: 8px; letter-spacing: .1em; text-align: right; }
 .caption-line { width: 18px; height: 1px; flex: 0 0 auto; background: rgba(212,180,122,.7); }
@@ -161,12 +162,23 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .panel-header { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 22px; border-bottom: 1px solid var(--border); }
 .panel-kicker { color: #a18a64; font-size: 9px; letter-spacing: .23em; }
 .panel-header h2 { margin: 8px 0 0; color: #e5dfd3; font: 500 24px var(--serif); letter-spacing: .1em; }
-.close-button { display: grid; width: 33px; height: 33px; place-items: center; border: 1px solid var(--border); background: transparent; color: #d2c9b7; cursor: pointer; font-size: 22px; }
+.close-button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid var(--border); background: transparent; color: #d2c9b7; cursor: pointer; font-size: 22px; }
 .map-panel { width: min(900px, 100%); padding-right: 38px; }
 .map-intro { margin: 18px 0; color: #a0a29a; font-size: 11px; line-height: 1.8; }
 .map-canvas { height: min(49vh, 390px); overflow: hidden; border: 1px solid rgba(205,191,164,.2); background: radial-gradient(ellipse, #2a3231, #101415 70%); }
-.village-canvas { width: 100%; height: 100%; min-height: 180px; touch-action: none; }
+.village-canvas { position: relative; width: 100%; height: 100%; min-height: 180px; touch-action: none; overflow: hidden; }
 .village-canvas canvas { display: block; width: 100%; height: 100%; }
+/* Keyboard-accessible 3D route hotspots: invisible 44×44 hit areas that track
+   the projected marker positions. Pointer events stay on the canvas so mouse
+   drag/zoom keeps working; focus ring appears only for keyboard users. */
+.hotspot-button { position: absolute; z-index: 2; width: 44px; height: 44px; padding: 0; transform: translate(-50%, -50%); border: 2px solid transparent; border-radius: 50%; background: transparent; color: var(--lamp); cursor: pointer; font: 10px var(--serif); opacity: 0; pointer-events: none; transition: opacity .2s, border-color .2s, background .2s; }
+.hotspot-button:focus-visible { border-color: var(--lamp); background: rgba(10, 13, 14, .72); opacity: 1; outline: 2px solid var(--lamp); outline-offset: 4px; }
+/* Soft, non-blocking confirmation when skipping the station-11 name-check puzzle. */
+.skip-confirm { position: fixed; z-index: 30; left: 50%; bottom: 120px; width: min(420px, calc(100vw - 44px)); transform: translateX(-50%); padding: 18px 20px; border: 1px solid rgba(222, 178, 111, .45); background: rgba(10, 13, 14, .94); box-shadow: 0 14px 44px rgba(0, 0, 0, .5); backdrop-filter: blur(8px); animation: rise-in .25s both; }
+.skip-confirm h2 { margin: 0 0 8px; color: #e9d5af; font: 500 15px var(--serif); letter-spacing: .08em; }
+.skip-confirm p { margin: 0 0 16px; color: #b3b0a6; font-size: 11px; line-height: 1.8; }
+.skip-confirm-actions { display: flex; align-items: center; gap: 18px; }
+.skip-confirm-actions .primary-button { min-height: 44px; }
 .model-fallback { display: flex; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; gap: 9px; color: #c1b69f; text-align: center; }
 .model-fallback span { color: var(--lamp); font-size: 25px; }
 .model-fallback b { font: 500 13px var(--serif); }
@@ -256,7 +268,7 @@ button:disabled { opacity: .38; cursor: not-allowed; }
   .top-actions { gap: 15px; }
   .sound-label { display: none; }
   .icon-button { font-size: 15px; }
-  .map-button { width: 34px; height: 34px; justify-content: center; padding: 0; font-size: 0; }
+  .map-button { width: 44px; height: 44px; justify-content: center; padding: 0; font-size: 0; }
   .map-button span { font-size: 19px; }
   .intro-screen { inset: 62px 0 0; align-items: flex-end; padding: 0 22px 8vh; }
   .intro-model { inset: -45px -54% 18% -38%; opacity: .63; mask-image: linear-gradient(180deg, #000, #000 60%, transparent 100%); }
@@ -285,11 +297,10 @@ button:disabled { opacity: .38; cursor: not-allowed; }
   .chapter-copy h1 { margin-top: 16px; font-size: clamp(27px, 8vw, 37px); line-height: 1.3; }
   .chapter-subtitle { font-size: 10px; letter-spacing: .1em; }
   .story-text { max-height: 23vh; margin-top: 15px; overflow: hidden; padding-right: 4px; color: #d4d3ca; font-size: 11px; line-height: 1.82; }
-  .story-text p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
   .story-text p { margin-bottom: 8px; }
   .story-page-controls { margin-top: 0; font-size: 7px; }
   .branch-echo { margin-top: 5px; padding-left: 7px; font-size: 7px; line-height: 1.5; }
-  .story-page-controls button { width: 24px; height: 24px; }
+  .story-page-controls button { width: 44px; height: 44px; }
   .npc-line { font-size: 8px; }
   .npc-mark { width: 15px; height: 15px; }
   .interaction-card { gap: 8px; min-height: 67px; margin-top: auto; padding: 8px; }
@@ -307,7 +318,7 @@ button:disabled { opacity: .38; cursor: not-allowed; }
   .source-access { gap: 5px; font-size: 7px; }
   .source-access button { font-size: 8px; }
   .chapter-nav { gap: 8px; font-size: 9px; }
-  .chapter-nav button { width: 25px; height: 25px; }
+  .chapter-nav button { width: 44px; height: 44px; }
   .scene-caption { right: 17px; bottom: 10%; max-width: 170px; gap: 6px; font-size: 6px; }
   .caption-place { display: none; }
   .sound-cue { right: 17px; bottom: 32%; gap: 7px; font-size: 7px; }
