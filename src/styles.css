@@ -411,3 +411,132 @@ button:disabled { opacity: .38; cursor: not-allowed; }
   .codex-search { font-size: 9px; }
   .sources-tabs button { padding: 7px 14px; font-size: 10px; }
 }
+
+/* ================= Phase 3: 3D exploration + inventory + puzzles ================= */
+
+/* Explore entry on the chapter screen */
+.explore-entry { display: flex; align-items: center; gap: 14px; margin: 18px 0 4px; }
+.explore-entry small { color: var(--dim); font-size: 11px; letter-spacing: .06em; }
+.explore-button { min-height: 46px; }
+
+/* Full-viewport exploration overlay */
+.explore-overlay { position: fixed; inset: 0; z-index: 40; display: flex; flex-direction: column; background: #0b0e0f; }
+.explore-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 4vw; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(10,14,15,.92), rgba(10,14,15,.55)); }
+.explore-title .panel-kicker { display: block; color: var(--lamp); font-size: 10px; letter-spacing: .3em; }
+.explore-title h2 { margin: 4px 0 0; color: var(--bone); font: 500 17px var(--serif); letter-spacing: .1em; }
+.explore-actions { display: flex; align-items: center; gap: 10px; }
+.explore-actions .icon-button { min-height: 44px; padding: 0 14px; }
+.explore-body { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+
+/* 3D scene host */
+.explore-scene { position: absolute; inset: 0; }
+.explore-scene canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.explore-hint { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); color: rgba(233,229,219,.55); font-size: 11px; letter-spacing: .2em; pointer-events: none; }
+
+/* Hotspot a11y buttons — projected over the 3D markers */
+.explore-hotspot-button { position: absolute; z-index: 3; min-width: 44px; min-height: 44px; padding: 6px 10px; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 7px; border: 1px solid rgba(222,216,201,.28); border-radius: 22px; background: rgba(8,11,12,.68); color: var(--bone); font-size: 11px; letter-spacing: .08em; cursor: pointer; backdrop-filter: blur(3px); transition: border-color .2s, background .2s, transform .2s; }
+.explore-hotspot-button:hover, .explore-hotspot-button:focus-visible { border-color: var(--lamp); background: rgba(20,16,10,.85); }
+.explore-hotspot-button .hotspot-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.explore-hotspot-button.kind-investigate .hotspot-dot { background: #c5a875; box-shadow: 0 0 8px #c5a875; }
+.explore-hotspot-button.kind-pickup .hotspot-dot { background: #7fa88f; box-shadow: 0 0 8px #7fa88f; }
+.explore-hotspot-button.kind-puzzle .hotspot-dot { background: #a93d32; box-shadow: 0 0 10px #a93d32; }
+.explore-hotspot-button.is-dimmed { opacity: .45; }
+.explore-hotspot-button.is-dimmed .hotspot-dot { box-shadow: none; }
+.explore-hotspot-button .hotspot-tag { white-space: nowrap; }
+
+/* Hotspot detail card */
+.hotspot-card { position: absolute; z-index: 4; left: 50%; bottom: 18px; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); max-height: 46%; overflow: auto; padding: 18px 20px; border: 1px solid var(--border); border-radius: 4px; background: linear-gradient(165deg, rgba(24,28,29,.96), rgba(12,15,16,.96)); box-shadow: 0 18px 50px rgba(0,0,0,.5); }
+.hotspot-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.hotspot-card-head h3 { margin: 0; flex: 1; color: var(--bone); font: 500 15px var(--serif); letter-spacing: .08em; }
+.hotspot-kind { padding: 3px 10px; border: 1px solid; font-size: 10px; letter-spacing: .2em; }
+.hotspot-kind.kind-investigate { border-color: rgba(197,168,117,.55); color: #c5a875; }
+.hotspot-kind.kind-pickup { border-color: rgba(127,168,143,.55); color: #9fc4a8; }
+.hotspot-kind.kind-puzzle { border-color: rgba(169,61,50,.6); color: #d0725f; }
+.hotspot-desc { margin: 0 0 12px; color: #c9c4b8; font-size: 13px; line-height: 1.9; }
+.hotspot-use { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Inventory */
+.inventory-sheet { position: absolute; z-index: 5; top: 0; right: 0; bottom: 0; width: min(380px, 92%); overflow: auto; padding: 22px 20px; border-left: 1px solid var(--border); background: linear-gradient(200deg, #171c1d, #0c1011 75%); box-shadow: -20px 0 50px rgba(0,0,0,.45); }
+.inventory-panel .inventory-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.inventory-panel .panel-kicker { color: var(--lamp); font-size: 10px; letter-spacing: .3em; }
+.inventory-hint { color: var(--dim); font-size: 11px; margin: 0 0 10px; }
+.inventory-empty { color: var(--dim); font-size: 12px; line-height: 1.9; }
+.inventory-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.inventory-item { border-top: 1px solid rgba(214,208,194,.1); }
+.inventory-item-main { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 8px 4px; border: 0; background: none; cursor: pointer; text-align: left; }
+.inventory-item.is-selected .inventory-item-main { background: rgba(169,61,50,.14); }
+.item-glyph { color: var(--lamp); font-size: 13px; }
+.item-name { flex: 1; color: var(--bone); font-size: 13px; letter-spacing: .06em; }
+.item-tag { padding: 2px 8px; border: 1px solid rgba(127,168,143,.5); color: #9fc4a8; font-size: 10px; }
+.item-detail { padding: 4px 4px 12px 26px; }
+.item-detail p { margin: 0 0 8px; color: #a9aca4; font-size: 12px; line-height: 1.85; }
+.combine-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.combine-selection { color: var(--dim); font-size: 11px; }
+.quiet-button.small, .primary-button.small { min-height: 40px; padding: 0 14px; font-size: 11px; }
+.quiet-button.is-active { border-color: var(--red); color: #d0725f; }
+
+/* Puzzle sheets */
+.puzzle-sheet { position: absolute; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, calc(100% - 32px)); max-height: 88%; overflow: auto; padding: 26px 26px 22px; border: 1px solid rgba(169,61,50,.4); border-radius: 4px; background: linear-gradient(165deg, #1c1512, #0d0f10 70%); box-shadow: 0 24px 70px rgba(0,0,0,.6); }
+.puzzle-panel .puzzle-kicker { color: #d0725f; font-size: 10px; letter-spacing: .3em; margin: 0 0 6px; }
+.puzzle-panel h3 { margin: 0 0 10px; color: var(--bone); font: 500 18px var(--serif); letter-spacing: .1em; }
+.puzzle-panel .puzzle-note { color: #b9b4a8; font-size: 12.5px; line-height: 1.9; margin: 0 0 14px; }
+.puzzle-panel .puzzle-note b { color: var(--lamp); font-weight: 600; }
+.puzzle-hint { margin: 12px 0; padding: 10px 12px; border-left: 2px solid var(--lamp); background: rgba(223,184,121,.07); color: #cfc9bc; font-size: 12px; line-height: 1.85; }
+.puzzle-hint b { color: var(--lamp); }
+.puzzle-miss { color: #d0725f; font-size: 12px; }
+.puzzle-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.fiction-boundary { margin: 14px 0 4px; padding: 10px 12px; border: 1px dashed rgba(214,208,194,.25); color: #8e8a7c; font-size: 11px; line-height: 1.8; }
+.fiction-boundary b { color: #b1ab9c; }
+
+/* Divination */
+.divination-coins { display: flex; flex-direction: column; gap: 6px; margin: 0 0 14px; }
+.toss-row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid rgba(214,208,194,.12); color: var(--dim); font-size: 12px; }
+.toss-row.is-done { border-color: rgba(223,184,121,.4); color: var(--bone); }
+.toss-index { min-width: 44px; letter-spacing: .1em; }
+.divination-result .gua-name { color: var(--bone); font: 500 15px var(--serif); letter-spacing: .06em; }
+.divination-result .gua-name b { color: var(--lamp); }
+.divination-result .gua-ci, .divination-result .gua-yao { color: #b9b4a8; font-size: 13px; line-height: 2; font-family: var(--serif); }
+.divination-result .gua-ci b, .divination-result .gua-yao b { color: #d0725f; }
+
+/* Dial puzzle */
+.dial-row { display: flex; gap: 14px; justify-content: center; margin: 6px 0 4px; }
+.dial { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 16px; border: 1px solid var(--border); background: rgba(10,13,14,.5); }
+.dial-label { color: var(--dim); font-size: 10px; letter-spacing: .14em; }
+.dial-turn { width: 44px; height: 44px; border: 1px solid rgba(222,216,201,.25); background: none; color: var(--lamp); font-size: 15px; cursor: pointer; }
+.dial-turn:hover { border-color: var(--lamp); }
+.dial-value { min-height: 44px; display: grid; place-items: center; color: var(--bone); font: 600 26px var(--serif); }
+
+/* Lamps puzzle */
+.lamps-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 4px 0 8px; }
+.lamp { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 64px; min-height: 84px; padding: 10px 6px; border: 1px solid rgba(214,208,194,.16); background: rgba(10,13,14,.5); cursor: pointer; }
+.lamp:hover { border-color: var(--lamp); }
+.lamp.is-lit { border-color: rgba(223,184,121,.7); background: rgba(223,184,121,.1); }
+.lamp-flame { font-size: 22px; }
+.lamp-name { color: var(--bone); font-size: 12px; letter-spacing: .1em; }
+.lamp.is-lit .lamp-name { color: var(--lamp); }
+.lamps-progress { color: var(--dim); font-size: 11px; text-align: center; }
+
+.explore-toast { position: absolute; z-index: 8; left: 50%; bottom: 76px; transform: translateX(-50%); max-width: min(520px, calc(100% - 40px)); }
+
+/* Reduced motion: no marker pulse/bob (handled in JS too), calmer transitions */
+@media (prefers-reduced-motion: reduce) {
+  .explore-hotspot-button, .lamp, .dial-turn { transition: none; }
+  .explore-hint { display: none; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .explore-topbar { padding: 10px 4vw; }
+  .explore-title { min-width: 0; flex: 1; }
+  .explore-title h2 { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .explore-actions { flex: none; }
+  .explore-actions .icon-button { white-space: nowrap; }
+  .hotspot-card { bottom: 12px; padding: 14px 16px; max-height: 52%; }
+  .hotspot-desc { font-size: 12.5px; }
+  .puzzle-sheet { padding: 20px 18px; }
+  .dial-row { gap: 8px; }
+  .dial { padding: 8px 10px; }
+  .lamp { min-width: 56px; }
+  .explore-entry { flex-direction: column; align-items: stretch; gap: 8px; }
+  .inventory-sheet { width: 100%; border-left: 0; border-top: 1px solid var(--border); top: auto; height: 62%; }
+}

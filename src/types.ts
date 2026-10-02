@@ -55,4 +55,8 @@ export type SavedState = {
   explored?: string[];
   puzzles?: string[];
   endingId?: string;
+  /** backpack item ids */
+  inventory?: string[];
+  /** consumed one-shot hotspot ids */
+  consumedHotspots?: string[];
 };

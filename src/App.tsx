@@ -4,6 +4,8 @@ import VillageCanvas from './VillageCanvas';
 import { Soundscape } from './audio';
 import { StoryRuntime } from './storyRuntime';
 import { ChapterRail, EndingChoices, JournalPanel, SourcesDialog, StoryReader } from './components/StoryPanels';
+import ExploreOverlay from './components/ExploreOverlay';
+import { itemDef } from './data/exploration';
 import { InkChars, InkFade, InkTitle, screenVariants } from './components/InkReveal';
 import type { SavedState, StoryData } from './types';
 
@@ -37,6 +39,10 @@ function App() {
   const [choiceMemory, setChoiceMemory] = useState<Record<string, string>>(loadSave()?.choices ?? {});
   const [solvedPuzzles, setSolvedPuzzles] = useState<string[]>(loadSave()?.puzzles ?? []);
   const [endingId, setEndingId] = useState(loadSave()?.endingId);
+  const [inventory, setInventory] = useState<string[]>(loadSave()?.inventory ?? []);
+  const [consumedHotspots, setConsumedHotspots] = useState<string[]>(loadSave()?.consumedHotspots ?? []);
+  const [exploreOpen, setExploreOpen] = useState(false);
+  const [divined, setDivined] = useState(false);
   const [started, setStarted] = useState(loadSave()?.currentId !== undefined && loadSave()?.currentId !== 'intro');
   const [explored, setExplored] = useState<string[]>(loadSave()?.explored ?? []);
   const [dialog, setDialog] = useState<'map' | 'journal' | 'sources' | 'settings' | null>(null);
@@ -60,6 +66,8 @@ function App() {
   const ending = story?.endings?.find((item) => item.id === endingId || item.knot === endingId);
   const intro = !started || currentId === 'intro';
   const collected = useMemo(() => new Set(clues), [clues]);
+  const consumedHotspotSet = useMemo(() => new Set(consumedHotspots), [consumedHotspots]);
+  const solvedPuzzleSet = useMemo(() => new Set(solvedPuzzles), [solvedPuzzles]);
   const puzzleSolved = chapter ? solvedPuzzles.includes(chapter.id) : false;
 
   useEffect(() => {
@@ -90,6 +98,8 @@ function App() {
         setExplored(exploredIds.filter((id) => validIds.has(id)));
         setChoiceMemory(saved.choices ?? {});
         setSolvedPuzzles(saved.puzzles ?? []);
+        setInventory(saved.inventory ?? []);
+        setConsumedHotspots(saved.consumedHotspots ?? []);
         setEndingId(saved.endingId);
       } else {
         setCurrentId('intro');
@@ -167,9 +177,9 @@ function App() {
 
   useEffect(() => {
     if (!story || intro) return;
-    const data: SavedState = { currentId, collected: clues, visited, choices: choiceMemory, explored, puzzles: solvedPuzzles, endingId };
+    const data: SavedState = { currentId, collected: clues, visited, choices: choiceMemory, explored, puzzles: solvedPuzzles, endingId, inventory, consumedHotspots };
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch { /* The story remains playable if storage is unavailable. */ }
-  }, [story, intro, currentId, clues, visited, choiceMemory, explored, solvedPuzzles, endingId]);
+  }, [story, intro, currentId, clues, visited, choiceMemory, explored, solvedPuzzles, endingId, inventory, consumedHotspots]);
 
   useEffect(() => {
     if (!message) return;
@@ -326,9 +336,52 @@ function App() {
     setChoiceMemory({});
     setSolvedPuzzles([]);
     setExplored([]);
+    setInventory([]);
+    setConsumedHotspots([]);
+    setDivined(false);
+    setExploreOpen(false);
     setEndingId(undefined);
     setDialog(null);
   };
+
+  // ---- Phase 3: exploration + inventory + puzzles ----
+
+  const handlePickup = useCallback((itemId: string, hotspotId: string) => {
+    setInventory((old) => old.includes(itemId) ? old : [...old, itemId]);
+    setConsumedHotspots((old) => old.includes(hotspotId) ? old : [...old, hotspotId]);
+    sound.current.cue('paper');
+  }, []);
+
+  const handleCombine = useCallback((consumedIds: string[], gained: string, _text: string) => {
+    setInventory((old) => [...old.filter((id) => !consumedIds.includes(id)), gained]);
+    sound.current.cue('paper');
+  }, []);
+
+  const handleUseItemOnHotspot = useCallback((itemId: string, hotspot: { id: string; acceptsItem?: string; useItemText?: string; wrongItemText?: string }) => {
+    const accepted = hotspot.acceptsItem === itemId || itemDef(itemId)?.usableOn?.includes(hotspot.id);
+    if (accepted) {
+      // S5: offering wine at the altar solves the divination puzzle.
+      if (hotspot.id === 's05-altar') {
+        setSolvedPuzzles((old) => old.includes('divination-kun') ? old : [...old, 'divination-kun']);
+        setConsumedHotspots((old) => old.includes(hotspot.id) ? old : [...old, hotspot.id]);
+        // The wine is poured out; the vessel stays as a used offering.
+        setInventory((old) => old.filter((id) => id !== itemId));
+        sound.current.cue('sting');
+        return hotspot.useItemText ?? '酒入盏中。';
+      }
+      setConsumedHotspots((old) => old.includes(hotspot.id) ? old : [...old, hotspot.id]);
+      return hotspot.useItemText ?? '用上了。';
+    }
+    sound.current.cue('knock');
+    return hotspot.wrongItemText ?? '这东西用在这里不合适。';
+  }, []);
+
+  const handlePuzzleSolved = useCallback((puzzleId: string, _text: string) => {
+    setSolvedPuzzles((old) => old.includes(puzzleId) ? old : [...old, puzzleId]);
+    sound.current.cue('sting');
+  }, []);
+
+  const handleDivined = useCallback(() => setDivined(true), []);
 
   const branchEcho = pageIndex === 3 && choiceMemory['station-03']
     ? choiceMemory['station-03'].includes('按住')
@@ -347,7 +400,9 @@ function App() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { setDialog(null); return; }
-      if (dialog || intro || ending || !chapter) return;
+      // The exploration overlay has its own keyboard model (Tab/Enter/arrows
+      // move between hotspots); don't hijack keys while it's open.
+      if (dialog || intro || ending || !chapter || exploreOpen) return;
       // Never hijack typing inside form fields (e.g. the station-11 puzzle input).
       const target = event.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return;
@@ -358,7 +413,7 @@ function App() {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [dialog, intro, ending, chapter, pageIndex, locations, goTo, moveNext, guardedGoTo]);
+  }, [dialog, intro, ending, chapter, pageIndex, locations, goTo, moveNext, guardedGoTo, exploreOpen]);
 
   // Hooks must stay above the early returns below: on the first render the
   // story has not loaded yet, and changing the hook count between renders
@@ -460,6 +515,12 @@ function App() {
                 <button className={`inspect-button ${explored.includes(chapter.id) ? 'complete' : ''}`} type="button" onClick={inspectScene} aria-label={explored.includes(chapter.id) ? '线索已记录' : '调查并记录线索'}>{explored.includes(chapter.id) ? '已记录 ✓' : '调查'}<span>↗</span></button>
               )}
             </div>
+            <div className="explore-entry">
+              <button type="button" className="primary-button explore-button" onClick={() => setExploreOpen(true)} aria-label={`进入${chapter.title.replace(/^\d+[｜|.、]\s*/, '')}的三维现场进行探索`}>
+                <span aria-hidden="true">⌖</span> 进入现场探索
+              </button>
+              <small>在三维现场中点击发光处调查、拾取物品、解开谜题</small>
+            </div>
             {choice && <div className="decision-tag">你选择：{choice}</div>}
             {message && <div className="toast-message" role="status">{message}</div>}
             <div className="chapter-footer">
@@ -496,6 +557,25 @@ function App() {
           </> : dialog === 'journal' ? <JournalPanel chapters={locations} collected={collected} /> : dialog === 'sources' ? <SourcesDialog chapter={chapter} /> : <div className="settings-panel"><p>声音在你点击「举灯入巷」后才会播放。重要听声线索也会显示为文字提示。</p><button className="primary-button" type="button" onClick={() => void toggleSound()}>{soundOn ? '关闭环境声' : '开启环境声'}</button><label>环境音量 <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => updateVolume(Number(event.target.value))} /><b>{Math.round(volume * 100)}%</b></label><button className="quiet-button" type="button" onClick={newGame}>清除存档并重新开始</button></div>}
         </section>
       </div>}
+      {exploreOpen && chapter && !ending && (
+        <ExploreOverlay
+          stationId={chapter.id}
+          stationIndex={pageIndex}
+          title={chapter.title.replace(/^\d+[｜|.、]\s*/, '')}
+          inventory={inventory}
+          consumedHotspots={consumedHotspotSet}
+          solvedPuzzles={solvedPuzzleSet}
+          divined={divined}
+          onPickup={handlePickup}
+          onConsumeHotspot={(id) => setConsumedHotspots((old) => old.includes(id) ? old : [...old, id])}
+          onCombine={handleCombine}
+          onUseItemOnHotspot={handleUseItemOnHotspot}
+          onPuzzleSolved={handlePuzzleSolved}
+          onDivined={handleDivined}
+          onOpenCodex={() => { setExploreOpen(false); setDialog('sources'); }}
+          onClose={() => setExploreOpen(false)}
+        />
+      )}
       {!intro && !ending && <div className="bottom-hint"><span>J</span> 手记 <i /> <span>M</span> 街区 <i /> <span>← →</span> 前后章节</div>}
       {story.endings?.length && !intro && !ending && pageIndex === locations.length - 1 && <EndingChoices endings={story.endings} onChoose={chooseEnding} />}
       <footer className="footer-mark"><span>归灯</span><i />基于真实地点考据的虚构故事</footer>
