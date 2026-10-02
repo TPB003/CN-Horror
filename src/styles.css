@@ -357,3 +357,13 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ---- Phase 1: ink reveal & chapter transitions (transform/opacity only) ---- */
+.ink-char { display: inline-block; will-change: opacity, transform; }
+.transition-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 26%, rgba(2, 4, 5, .88) 100%);
+}

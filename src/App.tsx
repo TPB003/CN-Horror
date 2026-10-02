@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import VillageCanvas from './VillageCanvas';
 import { Soundscape } from './audio';
 import { StoryRuntime } from './storyRuntime';
 import { ChapterRail, EndingChoices, JournalPanel, SourcePanel, StoryReader } from './components/StoryPanels';
+import { InkChars, InkFade, InkTitle, screenVariants } from './components/InkReveal';
 import type { SavedState, StoryData } from './types';
 
 const SAVE_KEY = 'guideng-lianyungang-save-v1';
@@ -372,6 +374,7 @@ function App() {
   }, [pageIndex]);
 
   return (
+    <MotionConfig reducedMotion="user">
     <main className={`app-shell ${intro ? 'is-intro' : ''} ${ending ? 'is-ending' : ''}`}>
       <div className="grain" aria-hidden="true" />
       <div className="scene-backdrop" style={{ backgroundImage: `url(/assets/scenes/${sceneImage}.webp)` }} />
@@ -393,12 +396,14 @@ function App() {
         </div>
       </header>
 
+      <motion.div key={intro ? 'intro' : ending ? `ending-${ending.id}` : chapter?.id ?? 'none'} className="transition-veil" aria-hidden="true" initial={{ opacity: 0.8 }} animate={{ opacity: 0 }} transition={{ duration: 1.6, ease: 'easeOut' }} />
+      <AnimatePresence mode="wait">
       {intro ? (
-        <section className="intro-screen" aria-labelledby="intro-title">
+        <motion.section key="intro" className="intro-screen" aria-labelledby="intro-title" variants={screenVariants} initial="hidden" animate="show" exit="exit">
           <div className="intro-model">{dialog !== 'map' && <VillageCanvas selectedId="01" chapterTitles={chapterLabels} onSelect={(id) => { const target = locations.find((item) => item.id.endsWith(id) || item.id === id); if (target) guardedGoTo(target.id); }} />}</div>
           <div className="intro-copy">
-            <p className="eyebrow"><span />二十年前，旧客簿上多出一个名字</p>
-            <h1 id="intro-title">归灯<span>，</span><br /><em>先看灯下的影子。</em></h1>
+            <p className="eyebrow"><span /><InkFade delay={0.2}>二十年前，旧客簿上多出一个名字</InkFade></p>
+            <h1 id="intro-title" aria-label="归灯，先看灯下的影子。"><InkChars text="归灯" /><span aria-hidden="true">，</span><br /><em><InkFade delay={0.9}>先看灯下的影子。</InkFade></em></h1>
             <p className="intro-lead">一封没有邮戳的信，把沈归带回连云老街。<br />天亮以前，他要从一册被水泡开的客簿里，<br />分清谁的名字被写错，谁又在巷口等他回家。</p>
             <div className="intro-meta"><span>单人叙事体验</span><i />12 个剧情站点<i /><span>支持静音游玩</span></div>
             {story.chapters[0]?.introQuote && <p className="letter-quote">{story.chapters[0].introQuote}</p>}
@@ -410,26 +415,26 @@ function App() {
           </div>
           <div className="model-hint"><span>拖动旋转</span><i /><span>滚轮缩放模型</span></div>
           <div className="intro-index"><span>夜行档案</span><b>01</b><i>/</i><b>12</b></div>
-        </section>
+        </motion.section>
       ) : ending ? (
-        <section className="ending-screen">
+        <motion.section key="ending" className="ending-screen" variants={screenVariants} initial="hidden" animate="show" exit="exit">
           <div className="ending-orbit" aria-hidden="true"><span>灯</span></div>
           <div className="ending-copy">
             <p className="eyebrow">天亮了 · 客簿最后一页</p>
-            <h1>{ending.title}</h1>
+            <InkTitle text={ending.title} />
             <StoryReader lines={inkLines.length ? inkLines : ending.prose ?? []} page={storyPage} onPageChange={setStoryPage} />
             <div className="ending-actions"><button className="primary-button" type="button" onClick={newGame}>重新走一遍 <span className="button-arrow">↺</span></button><button className="quiet-button" type="button" onClick={() => setDialog('journal')}>查看手记 <span>▤</span></button></div>
             <p className="ending-note">这段故事的声音会在此处停下。</p>
           </div>
-        </section>
+        </motion.section>
       ) : chapter ? (
-        <section className="chapter-screen" key={chapter.id} aria-labelledby="chapter-title">
+        <motion.section key={chapter.id} className="chapter-screen" aria-labelledby="chapter-title" variants={screenVariants} initial="hidden" animate="show" exit="exit">
           <ChapterRail chapters={locations} currentIndex={pageIndex} visited={visited} onNavigate={guardedGoTo} onOpenMap={() => setDialog('map')} />
 
           <div className="chapter-copy">
             <div className="chapter-meta"><span className="chapter-number">{String(pageIndex + 1).padStart(2, '0')}</span><span className="meta-rule" /><span>{chapter.weather ?? '雾气压低，雨没有停'}</span><span className="meta-dot">·</span><span>{chapter.lantern ?? '灯火在雾中偏向一侧'}</span></div>
-            <h1 id="chapter-title">{chapter.title.replace(/^\d+[｜|.、]\s*/, '')}</h1>
-            <p className="chapter-subtitle">{chapter.subtitle}</p>
+            <InkTitle id="chapter-title" text={chapter.title.replace(/^\d+[｜|.、]\s*/, '')} />
+            <p className="chapter-subtitle"><InkFade delay={0.55}>{chapter.subtitle}</InkFade></p>
             <StoryReader lines={inkLines.length ? inkLines : chapter.prose} page={storyPage} onPageChange={setStoryPage} ariaLive />
             {branchEcho && <p className="branch-echo">旧路留下的痕迹：{branchEcho}</p>}
             {inkChoices.length > 1 && pageIndex !== locations.length - 1 && <div className="choice-deck" aria-label="选择行动">{inkChoices.map((option) => <button key={`${option.index}-${option.text}`} type="button" onClick={() => chooseInkAction(option.index)}>{option.text.replace(/^\[|\]$/g, '')}<span>↗</span></button>)}</div>}
@@ -453,7 +458,7 @@ function App() {
           </div>
 
           <div className="scene-caption"><span className="caption-line" /><span>{chapter.scene}</span><span className="caption-place">连云老街 · 叙事空间</span></div>
-          <div className="sound-cue" aria-hidden="true"><span className={soundOn ? 'wave active' : 'wave'} /><span>{soundOn ? '雨声停了一拍' : '开启声音，听见巷子'}</span></div>
+          <div className="sound-cue" aria-hidden="true"><span className={soundOn ? 'wave active' : 'wave'} /><InkFade delay={0.8} className="sound-cue-text">{soundOn ? '雨声停了一拍' : '开启声音，听见巷子'}</InkFade></div>
           <div className="chapter-clue-preview"><span className="clue-preview-mark">簿</span><span><i>手记线索</i><b>{collected.size ? `${collected.size} 项已收` : '尚未找到'}</b></span><button type="button" onClick={() => setDialog('journal')} aria-label="查看已收线索">↗</button></div>
           {pendingSkipId && (
             <div className="skip-confirm" role="alertdialog" aria-labelledby="skip-confirm-title" aria-describedby="skip-confirm-desc">
@@ -465,8 +470,9 @@ function App() {
               </div>
             </div>
           )}
-        </section>
+        </motion.section>
       ) : null}
+      </AnimatePresence>
 
       {dialog && <div className="overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(null); }}>
         <section ref={dialogPanel} className={`overlay-panel ${dialog === 'map' ? 'map-panel' : ''}`} role="dialog" aria-modal="true" aria-label={dialog === 'map' ? '连云老街街区模型' : dialog === 'journal' ? '线索手记' : dialog === 'sources' ? '史料来源与创作转译' : '声音设置'} tabIndex={-1}>
@@ -483,6 +489,7 @@ function App() {
       {story.endings?.length && !intro && !ending && pageIndex === locations.length - 1 && <EndingChoices endings={story.endings} onChoose={chooseEnding} />}
       <footer className="footer-mark"><span>归灯</span><i />基于真实地点考据的虚构故事</footer>
     </main>
+    </MotionConfig>
   );
 }
 

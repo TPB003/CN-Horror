@@ -1,4 +1,6 @@
+import { useAutoAnimate } from '@formkit/auto-animate/react';
 import type { StoryChapter } from '../types';
+import { InkFade } from './InkReveal';
 
 export function StoryReader({ lines, page, onPageChange, ariaLive = false }: {
   lines: string[];
@@ -31,7 +33,7 @@ export function ChapterRail({ chapters, currentIndex, visited, onNavigate, onOpe
   onOpenMap: () => void;
 }) {
   return <div className="chapter-rail">
-    <span className="rail-caption">路线 / 夜行</span>
+    <InkFade className="rail-caption" delay={0.6} duration={1.6}>路线 / 夜行</InkFade>
     <div className="chapter-dots" role="navigation" aria-label="剧情章节">
       {chapters.map((item, index) => <button key={item.id} className={`chapter-dot ${index === currentIndex ? 'active' : ''} ${visited.includes(item.id) ? 'visited' : ''}`} type="button" onClick={() => onNavigate(item.id)} aria-label={`第 ${String(index + 1).padStart(2, '0')} 站：${item.title}`} title={item.title}>
         <span>{String(index + 1).padStart(2, '0')}</span><i />
@@ -42,7 +44,8 @@ export function ChapterRail({ chapters, currentIndex, visited, onNavigate, onOpe
 }
 
 export function JournalPanel({ chapters, collected }: { chapters: StoryChapter[]; collected: Set<string> }) {
-  return <div className="journal-list">{chapters.map((item, index) => {
+  const [listRef] = useAutoAnimate();
+  return <div className="journal-list" ref={listRef}>{chapters.map((item, index) => {
     const found = collected.has(item.clue.id);
     return <article key={item.clue.id} className={found ? 'found' : 'hidden-clue'}>
       <span className="journal-number">{String(index + 1).padStart(2, '0')}</span>
@@ -53,8 +56,9 @@ export function JournalPanel({ chapters, collected }: { chapters: StoryChapter[]
 }
 
 export function SourcePanel({ chapter }: { chapter?: StoryChapter }) {
-  if (!chapter) return <div className="source-list"><p>选择一个剧情站点后，可在这里查看对应的原典、档案和创作说明。</p></div>;
-  return <div className="source-list">
+  const [listRef] = useAutoAnimate();
+  if (!chapter) return <div className="source-list" ref={listRef}><p>选择一个剧情站点后，可在这里查看对应的原典、档案和创作说明。</p></div>;
+  return <div className="source-list" ref={listRef}>
     <p className="source-context">{chapter.regionTime}</p>
     <div className="boundary-card"><span>史料内容</span><p>{chapter.evidence}</p><span>本作转译</span><p>{chapter.transposition}</p></div>
     {chapter.sources.map((source) => <article className="source-item" key={source.id}>
