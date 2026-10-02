@@ -44,6 +44,7 @@ async function closeExploration(page) {
 }
 
 test('phase4: 12-station narrative walk (no exploration stress)', async ({ page}) => {
+  test.setTimeout(180_000); // 12 stations x map navigation; CI runners are slower
   const errors = await collectErrors(page);
   await page.setViewportSize({ width: 1440, height: 900});
   await startJourney(page);
