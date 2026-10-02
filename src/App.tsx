@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import VillageCanvas from './VillageCanvas';
 import { Soundscape } from './audio';
@@ -6,6 +6,10 @@ import { StoryRuntime } from './storyRuntime';
 import { ChapterRail, EndingChoices, JournalPanel, SourcePanel, StoryReader } from './components/StoryPanels';
 import { InkChars, InkFade, InkTitle, screenVariants } from './components/InkReveal';
 import type { SavedState, StoryData } from './types';
+
+// Atmosphere layer is decorative and off the reading path; split it out of the
+// initial bundle and let it fade in whenever the engine is ready.
+const AtmosphereParticles = lazy(() => import('./components/AtmosphereParticles'));
 
 const SAVE_KEY = 'guideng-lianyungang-save-v1';
 const SCENE_FILES = [
@@ -356,10 +360,9 @@ function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [dialog, intro, ending, chapter, pageIndex, locations, goTo, moveNext, guardedGoTo]);
 
-  if (loadError) return <main className="fatal-state"><div className="seal">归</div><p>故事暂时没有接上。</p><small>{loadError} · 请重新构建项目</small></main>;
-  if (!story) return <main className="loading-state"><span className="loading-lamp" /><p>灯还没有亮</p><small>正在翻开客簿……</small></main>;
-
-  const sceneImage = ending ? SCENE_FILES[11] : SCENE_FILES[Math.max(0, pageIndex)];
+  // Hooks must stay above the early returns below: on the first render the
+  // story has not loaded yet, and changing the hook count between renders
+  // crashes React (minified error #310) leaving a black screen.
   const chapterLabels = useMemo(() => locations.map((item, index) => `第 ${String(index + 1).padStart(2, '0')} 站：${item.title.replace(/^\d+[｜|.、]\s*/, '')}`), [locations]);
 
   // Preload the current and next chapter's scene images so switching chapters
@@ -373,12 +376,20 @@ function App() {
     });
   }, [pageIndex]);
 
+  if (loadError) return <main className="fatal-state"><div className="seal">归</div><p>故事暂时没有接上。</p><small>{loadError} · 请重新构建项目</small></main>;
+  if (!story) return <main className="loading-state"><span className="loading-lamp" /><p>灯还没有亮</p><small>正在翻开客簿……</small></main>;
+
+  const sceneImage = ending ? SCENE_FILES[11] : SCENE_FILES[Math.max(0, pageIndex)];
+
   return (
     <MotionConfig reducedMotion="user">
     <main className={`app-shell ${intro ? 'is-intro' : ''} ${ending ? 'is-ending' : ''}`}>
       <div className="grain" aria-hidden="true" />
       <div className="scene-backdrop" style={{ backgroundImage: `url(/assets/scenes/${sceneImage}.webp)` }} />
       <div className="scene-vignette" />
+      <Suspense fallback={null}>
+        <AtmosphereParticles />
+      </Suspense>
       <header className="topbar">
         <button className="brand-lockup" type="button" onClick={() => intro ? undefined : setDialog('map')} aria-label="打开连云老街路线图">
           <span className="brand-seal">归</span><span><b>归灯</b><i>连云老街异闻录</i></span>
@@ -402,8 +413,8 @@ function App() {
         <motion.section key="intro" className="intro-screen" aria-labelledby="intro-title" variants={screenVariants} initial="hidden" animate="show" exit="exit">
           <div className="intro-model">{dialog !== 'map' && <VillageCanvas selectedId="01" chapterTitles={chapterLabels} onSelect={(id) => { const target = locations.find((item) => item.id.endsWith(id) || item.id === id); if (target) guardedGoTo(target.id); }} />}</div>
           <div className="intro-copy">
-            <p className="eyebrow"><span /><InkFade delay={0.2}>二十年前，旧客簿上多出一个名字</InkFade></p>
-            <h1 id="intro-title" aria-label="归灯，先看灯下的影子。"><InkChars text="归灯" /><span aria-hidden="true">，</span><br /><em><InkFade delay={0.9}>先看灯下的影子。</InkFade></em></h1>
+            <p className="eyebrow"><span className="eyebrow-dash" /><InkFade delay={0.2}>二十年前，旧客簿上多出一个名字</InkFade></p>
+            <h1 id="intro-title" aria-label="归灯，先看灯下的影子。"><InkChars text="归灯" /><span className="intro-title-comma" aria-hidden="true">，</span><br /><em><InkFade delay={0.9}>先看灯下的影子。</InkFade></em></h1>
             <p className="intro-lead">一封没有邮戳的信，把沈归带回连云老街。<br />天亮以前，他要从一册被水泡开的客簿里，<br />分清谁的名字被写错，谁又在巷口等他回家。</p>
             <div className="intro-meta"><span>单人叙事体验</span><i />12 个剧情站点<i /><span>支持静音游玩</span></div>
             {story.chapters[0]?.introQuote && <p className="letter-quote">{story.chapters[0].introQuote}</p>}

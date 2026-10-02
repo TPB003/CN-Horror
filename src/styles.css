@@ -27,6 +27,11 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .scene-backdrop, .scene-vignette, .grain { position: absolute; inset: 0; pointer-events: none; }
 .scene-backdrop { z-index: -4; background-color: #121819; background-position: center 53%; background-size: cover; filter: saturate(.68) brightness(.49) contrast(1.1); transform: scale(1.025); transition: background-image .5s ease, filter 1s ease; }
 .scene-vignette { z-index: -3; background: linear-gradient(90deg, rgba(5,8,9,.93) 0%, rgba(5,8,9,.78) 34%, rgba(5,8,9,.31) 68%, rgba(5,8,9,.37) 100%), linear-gradient(0deg, rgba(5,8,9,.87), transparent 29%, rgba(5,8,9,.18) 75%, rgba(5,8,9,.54)); }
+/* Ambient particles: above the scene backdrop/vignette (-4/-3), below the
+   screens; decorative only, never a hit target. */
+.atmosphere-layer { position: absolute; inset: 0; z-index: -2; overflow: hidden; pointer-events: none; }
+.atmosphere-canvas { position: absolute; inset: 0; }
+.atmosphere-canvas canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .grain { z-index: 20; opacity: .065; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E"); mix-blend-mode: screen; }
 .topbar { position: absolute; z-index: 5; top: 0; left: 0; right: 0; height: 80px; padding: 0 4.2vw; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(232,226,213,.1); background: linear-gradient(180deg, rgba(5,8,9,.25), transparent); }
 .brand-lockup { display: flex; align-items: center; gap: 13px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; }
@@ -51,9 +56,9 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .intro-model::after { position: absolute; inset: 0; content: ''; background: linear-gradient(90deg, rgba(8,11,12,.6), transparent 46%), linear-gradient(0deg, rgba(8,11,12,.6), transparent 37%); pointer-events: none; }
 .intro-copy { width: min(600px, 48vw); margin-left: 13.1vw; padding: 25px 0 35px; animation: rise-in .9s both; }
 .eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 23px; color: #b0ada2; font-size: 10px; letter-spacing: .26em; }
-.eyebrow > span { width: 21px; height: 1px; background: var(--red); }
+.eyebrow > .eyebrow-dash { width: 21px; height: 1px; background: var(--red); }
 .intro-copy h1, .ending-copy h1 { margin: 0; color: #ebe6db; font: 500 clamp(48px, 6.1vw, 92px)/1.15 var(--serif); letter-spacing: .13em; }
-.intro-copy h1 > span { color: var(--red); }
+.intro-copy h1 > .intro-title-comma { color: var(--red); }
 .intro-copy h1 em { font-size: .48em; color: #ddd5c6; font-style: normal; letter-spacing: .19em; }
 .intro-lead { margin: 27px 0 20px; color: #c0c0b8; font-size: 14px; line-height: 2.05; letter-spacing: .09em; }
 .intro-meta { display: flex; align-items: center; gap: 12px; color: #818782; font-size: 9px; letter-spacing: .11em; }
