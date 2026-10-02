@@ -3,7 +3,7 @@ import { AnimatePresence, MotionConfig, motion } from 'motion/react';
 import VillageCanvas from './VillageCanvas';
 import { Soundscape } from './audio';
 import { StoryRuntime } from './storyRuntime';
-import { ChapterRail, EndingChoices, JournalPanel, SourcePanel, StoryReader } from './components/StoryPanels';
+import { ChapterRail, EndingChoices, JournalPanel, SourcesDialog, StoryReader } from './components/StoryPanels';
 import { InkChars, InkFade, InkTitle, screenVariants } from './components/InkReveal';
 import type { SavedState, StoryData } from './types';
 
@@ -486,14 +486,14 @@ function App() {
       </AnimatePresence>
 
       {dialog && <div className="overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDialog(null); }}>
-        <section ref={dialogPanel} className={`overlay-panel ${dialog === 'map' ? 'map-panel' : ''}`} role="dialog" aria-modal="true" aria-label={dialog === 'map' ? '连云老街街区模型' : dialog === 'journal' ? '线索手记' : dialog === 'sources' ? '史料来源与创作转译' : '声音设置'} tabIndex={-1}>
-          <header className="panel-header"><div><span className="panel-kicker">{dialog === 'map' ? '街区沙盘' : dialog === 'journal' ? '随身记录' : dialog === 'sources' ? '资料簿' : '声场设置'}</span><h2>{dialog === 'map' ? '沿石街往里走' : dialog === 'journal' ? '沈归的手记' : dialog === 'sources' ? '史料与创作边界' : '把声音留在巷里'}</h2></div><button type="button" className="close-button" onClick={() => setDialog(null)} aria-label="关闭">×</button></header>
+        <section ref={dialogPanel} className={`overlay-panel ${dialog === 'map' ? 'map-panel' : ''}`} role="dialog" aria-modal="true" aria-label={dialog === 'map' ? '连云老街街区模型' : dialog === 'journal' ? '线索手记' : dialog === 'sources' ? '史料来源与民俗志' : '声音设置'} tabIndex={-1}>
+          <header className="panel-header"><div><span className="panel-kicker">{dialog === 'map' ? '街区沙盘' : dialog === 'journal' ? '随身记录' : dialog === 'sources' ? '资料簿' : '声场设置'}</span><h2>{dialog === 'map' ? '沿石街往里走' : dialog === 'journal' ? '沈归的手记' : dialog === 'sources' ? '史料与民俗志' : '把声音留在巷里'}</h2></div><button type="button" className="close-button" onClick={() => setDialog(null)} aria-label="关闭">×</button></header>
           {dialog === 'map' ? <>
             <p className="map-intro">拖动旋转、滚轮缩放。点亮的灯火可直接进入对应章节；地图为叙事路线模型，非实测测绘图。</p>
             <div className="map-canvas"><VillageCanvas selectedId={String(Math.max(1, pageIndex + 1)).padStart(2, '0')} chapterTitles={chapterLabels} onSelect={(id) => { const target = locations.find((item, index) => item.id.endsWith(id) || String(index + 1).padStart(2, '0') === id); if (target) guardedGoTo(target.id); }} /></div>
             <div className="map-legend"><span><i className="legend-gold" />当前所在</span><span><i className="legend-ash" />已到访</span><span><i className="legend-red" />异象线索</span></div>
             <div className="map-locations">{locations.map((item, index) => <button type="button" key={item.id} className={`${currentId === item.id ? 'selected' : ''} ${visited.includes(item.id) ? 'arrived' : ''}`} onClick={() => guardedGoTo(item.id)} aria-label={`第 ${String(index + 1).padStart(2, '0')} 站：${item.title.replace(/^\d+[｜|.、]\s*/, '')}`}><small>{String(index + 1).padStart(2, '0')}</small><span>{item.title.replace(/^\d+[｜|.、]\s*/, '')}</span><i>{visited.includes(item.id) ? '●' : '○'}</i></button>)}</div>
-          </> : dialog === 'journal' ? <JournalPanel chapters={locations} collected={collected} /> : dialog === 'sources' ? <SourcePanel chapter={chapter} /> : <div className="settings-panel"><p>声音在你点击「举灯入巷」后才会播放。重要听声线索也会显示为文字提示。</p><button className="primary-button" type="button" onClick={() => void toggleSound()}>{soundOn ? '关闭环境声' : '开启环境声'}</button><label>环境音量 <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => updateVolume(Number(event.target.value))} /><b>{Math.round(volume * 100)}%</b></label><button className="quiet-button" type="button" onClick={newGame}>清除存档并重新开始</button></div>}
+          </> : dialog === 'journal' ? <JournalPanel chapters={locations} collected={collected} /> : dialog === 'sources' ? <SourcesDialog chapter={chapter} /> : <div className="settings-panel"><p>声音在你点击「举灯入巷」后才会播放。重要听声线索也会显示为文字提示。</p><button className="primary-button" type="button" onClick={() => void toggleSound()}>{soundOn ? '关闭环境声' : '开启环境声'}</button><label>环境音量 <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => updateVolume(Number(event.target.value))} /><b>{Math.round(volume * 100)}%</b></label><button className="quiet-button" type="button" onClick={newGame}>清除存档并重新开始</button></div>}
         </section>
       </div>}
       {!intro && !ending && <div className="bottom-hint"><span>J</span> 手记 <i /> <span>M</span> 街区 <i /> <span>← →</span> 前后章节</div>}

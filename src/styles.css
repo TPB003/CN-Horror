@@ -372,3 +372,42 @@ button:disabled { opacity: .38; cursor: not-allowed; }
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 26%, rgba(2, 4, 5, .88) 100%);
 }
+
+/* ---- 民俗志（站内知识库） ---- */
+.sources-tabs { display: flex; gap: 8px; margin: 4px 0 6px; }
+.sources-tabs button { padding: 8px 18px; border: 1px solid rgba(214,208,194,.22); background: transparent; color: #a9a294; cursor: pointer; font: 11px var(--serif); letter-spacing: .12em; }
+.sources-tabs button.active { border-color: rgba(208,173,118,.55); background: rgba(208,173,118,.1); color: #e6d5b5; }
+.sources-tabs button:focus-visible { outline: 2px solid #d0ad76; outline-offset: 2px; }
+.codex-panel { padding: 6px 0 17px; }
+.codex-intro { color: #92968f; font-size: 10px; line-height: 1.8; }
+.codex-intro span { color: #cbb58e; }
+.codex-controls { display: flex; flex-direction: column; gap: 12px; margin: 14px 0 6px; }
+.codex-search { display: flex; align-items: center; gap: 10px; color: #b1b1a8; font-size: 10px; letter-spacing: .1em; }
+.codex-search span { flex-shrink: 0; }
+.codex-search input { flex: 1; min-width: 0; padding: 8px 10px; border: 1px solid rgba(214,208,194,.2); background: rgba(8,11,12,.5); color: #ddd7cb; font-size: 11px; }
+.codex-search input:focus { outline: 2px solid #d0ad76; outline-offset: 1px; }
+.codex-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.codex-filters button { padding: 6px 14px; border: 1px solid rgba(214,208,194,.18); background: transparent; color: #a9a294; cursor: pointer; font-size: 10px; letter-spacing: .08em; }
+.codex-filters button.active { border-color: rgba(208,173,118,.55); background: rgba(208,173,118,.1); color: #e6d5b5; }
+.codex-filters button:focus-visible { outline: 2px solid #d0ad76; outline-offset: 2px; }
+.codex-count { color: #8e8a7c; font-size: 9px; letter-spacing: .1em; }
+.codex-list { display: flex; flex-direction: column; }
+.codex-item { padding: 15px 0; border-top: 1px solid rgba(214,208,194,.11); }
+.codex-head h3 { margin: 0 0 8px; color: #ddd7cb; font: 500 12px var(--serif); letter-spacing: .04em; }
+.codex-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.codex-tag { padding: 2px 8px; border: 1px solid; font-size: 9px; letter-spacing: .08em; }
+.codex-cat-doc { border-color: rgba(208,173,118,.5); color: #d0ad76; }
+.codex-cat-oral { border-color: rgba(126,168,160,.5); color: #9fc4bc; }
+.codex-cat-fiction { border-color: rgba(166,106,92,.55); color: #c97e61; }
+.codex-status-verified { border-color: rgba(214,208,194,.35); color: #b1b1a8; }
+.codex-status-pending { border-color: rgba(214,208,194,.2); color: #8e8a7c; }
+.codex-cite-yes { border-color: rgba(156,74,59,.6); color: #c97e61; }
+.codex-cite-no { border-color: rgba(214,208,194,.14); color: #77776e; }
+.codex-item p { margin: 4px 0; color: #999d95; font-size: 9px; line-height: 1.75; }
+.codex-item p b { display: inline-block; min-width: 52px; margin-right: 8px; color: #b28e5f; font-weight: 400; letter-spacing: .12em; }
+.codex-item a { display: inline-block; margin-top: 8px; color: #d0ad76; font-size: 9px; text-decoration-color: rgba(208,173,118,.4); text-underline-offset: 3px; }
+.codex-empty { padding: 24px 0; color: #8e8a7c; font-size: 10px; text-align: center; }
+@media (max-width: 768px) {
+  .codex-search { font-size: 9px; }
+  .sources-tabs button { padding: 7px 14px; font-size: 10px; }
+}
