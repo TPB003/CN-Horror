@@ -401,6 +401,11 @@ export default function VillageCanvas({ selectedId, onSelect, chapterTitles = []
       renderer.domElement.removeEventListener('click', onClick);
       controls.dispose();
       renderer.dispose();
+      // Force-release the WebGL context to avoid exhausting the browser limit
+      // when the map/intro canvas mounts and unmounts repeatedly.
+      const gl = renderer.getContext() as WebGLRenderingContext | null;
+      const loseExt = gl?.getExtension('WEBGL_lose_context') as { loseContext(): void } | null;
+      loseExt?.loseContext();
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();

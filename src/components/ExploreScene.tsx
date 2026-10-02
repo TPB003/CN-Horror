@@ -329,6 +329,11 @@ export default function ExploreScene({ stationIndex, title, hotspots, consumed, 
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       controls.dispose();
       renderer.dispose();
+      // Force-release the WebGL context: dispose() alone leaves the context
+      // alive until GC, and repeated open/close hits the browser's context limit.
+      const gl = renderer.getContext() as WebGLRenderingContext | null;
+      const loseExt = gl?.getExtension('WEBGL_lose_context') as { loseContext(): void } | null;
+      loseExt?.loseContext();
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();
