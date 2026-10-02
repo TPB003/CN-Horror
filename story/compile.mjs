@@ -301,7 +301,7 @@ export async function buildStory({ check = false, onlyNovel = false } = {}) {
 
   const outputs = [
     [path.join(projectRoot, 'public', 'story', 'story.json'), `${runtimeStory.ToJson()}\n`],
-    [path.join(projectRoot, 'public', 'story', 'chapters.json'), `${JSON.stringify(chaptersIndex, null, 2)}\n`],
+    [path.join(projectRoot, 'public', 'story', 'chapters.json'), `${JSON.stringify(chaptersIndex)}\n`],
     [path.join(projectRoot, 'novel', '归灯.md'), buildNovel(chapters, endings)],
   ];
   for (const [filePath, content] of outputs) {
