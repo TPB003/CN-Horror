@@ -1,0 +1,78 @@
+/* Spike-only styles: an "old notebook" skin for the StPageFlip journal demo. */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #101516 radial-gradient(120% 90% at 50% 0%, #1b2223 0%, #101516 55%, #080b0c 100%);
+  color: #e8e0cb;
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+  min-height: 100vh;
+}
+.spike-shell { max-width: 1060px; margin: 0 auto; padding: 28px 18px 64px; }
+.spike-head h1 { font-size: 22px; letter-spacing: .35em; margin: 0 0 6px; font-weight: 600; }
+.spike-head p { margin: 0 0 22px; color: #9aa39b; font-size: 13px; }
+.spike-error { color: #d98a7e; }
+.spike-loading { color: #9aa39b; }
+
+.spike-book-wrap { outline-offset: 6px; }
+.spike-book-wrap:focus-visible { outline: 1px solid #a64035; }
+.flip-book { margin: 0 auto; }
+
+.flip-page {
+  background:
+    radial-gradient(90% 60% at 18% 8%, rgba(146, 116, 62, .14), transparent 55%),
+    radial-gradient(70% 45% at 85% 92%, rgba(110, 82, 44, .12), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(94, 74, 43, .028) 0 2px, transparent 2px 5px),
+    linear-gradient(100deg, #ddd0ab 0%, #eadfc2 12%, #e6dab8 88%, #d8c9a4 100%);
+  color: #2c2618;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(84, 66, 34, .25), inset 6px 0 12px rgba(84, 66, 34, .14);
+}
+.page-inner { height: 100%; padding: 26px 26px 20px 30px; display: flex; flex-direction: column; }
+.page-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid rgba(120, 36, 28, .4); padding-bottom: 7px; margin-bottom: 12px;
+  color: #7a2d24; letter-spacing: .4em; font-size: 12px;
+}
+.page-head i { font-style: normal; letter-spacing: .1em; color: #8a7a52; }
+.page-foot { margin-top: auto; text-align: center; color: #97835c; font-size: 11px; letter-spacing: .5em; }
+
+.entry { display: flex; gap: 10px; padding: 9px 0 10px; border-bottom: 1px dashed rgba(84, 66, 34, .28); }
+.entry-no { color: #a64035; font-size: 12px; padding-top: 3px; letter-spacing: .08em; }
+.entry h3 { margin: 0 0 4px; font-size: 15.5px; font-weight: 600; letter-spacing: .06em; }
+.entry p { margin: 0; font-size: 13px; line-height: 1.65; color: #4c4330; }
+.entry > i { margin-left: auto; font-style: normal; font-size: 11px; color: #a64035; border: 1px solid rgba(166, 64, 53, .55); border-radius: 2px; padding: 1px 4px; height: fit-content; transform: rotate(3deg); }
+.entry:not(.found) h3, .entry:not(.found) p { color: #8d8168; }
+.entry:not(.found) > i { color: #8d8168; border-color: rgba(84, 66, 34, .35); }
+
+.flip-cover, .flip-back {
+  background:
+    radial-gradient(100% 70% at 50% 0%, rgba(166, 64, 53, .16), transparent 60%),
+    linear-gradient(160deg, #22303a 0%, #18222b 58%, #10161d 100%);
+  color: #e8e0cb;
+  box-shadow: inset 0 0 0 1px rgba(232, 224, 203, .16), inset 8px 0 18px rgba(0, 0, 0, .5);
+}
+.cover-inner, .back-inner { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; padding: 30px; }
+.cover-seal, .back-seal {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; border: 1.5px solid #a64035; color: #c8554a;
+  font-size: 22px; border-radius: 3px; transform: rotate(-2deg);
+}
+.cover-inner h2 { margin: 0; font-size: 34px; letter-spacing: .5em; text-indent: .5em; font-weight: 600; }
+.cover-inner p { margin: 0; color: #b9bfae; letter-spacing: .3em; font-size: 13px; }
+.cover-inner small { color: #7d8577; letter-spacing: .4em; margin-top: 26px; }
+.back-inner p { margin: 0; font-size: 16px; letter-spacing: .22em; line-height: 2; color: #cfd2c2; }
+.back-seal { margin-top: 22px; }
+
+.spike-controls { display: flex; justify-content: center; align-items: center; gap: 18px; margin-top: 24px; }
+.spike-controls button {
+  background: transparent; color: #e8e0cb; border: 1px solid rgba(232, 224, 203, .4);
+  padding: 8px 18px; font: inherit; font-size: 14px; letter-spacing: .15em; cursor: pointer;
+}
+.spike-controls button:disabled { opacity: .35; cursor: default; }
+.spike-controls button:not(:disabled):hover { border-color: #a64035; color: #e0a49c; }
+.spike-controls span { font-size: 13px; color: #9aa39b; min-width: 120px; text-align: center; }
+
+.spike-fallback { margin: 34px auto 0; max-width: 720px; color: #9aa39b; font-size: 14px; }
+.spike-fallback summary { cursor: pointer; letter-spacing: .1em; }
+.spike-fallback li { margin-bottom: 10px; }
+.spike-fallback p { margin: 3px 0 0; color: #7d8577; }
