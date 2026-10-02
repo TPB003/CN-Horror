@@ -160,6 +160,15 @@ export default function VillageCanvas({ selectedId, onSelect, chapterTitles = []
     renderer.toneMappingExposure = 1.04;
     element.appendChild(renderer.domElement);
 
+    // Post-processing (bloom / vignette / film grain) is loaded lazily via the
+    // underlying `postprocessing` library (the same effects @react-three/
+    // postprocessing wraps; this scene is plain three.js, so there is no R3F
+    // <Canvas> to attach the React wrapper to). Until the chunk arrives — and
+    // permanently if it fails — the loop falls back to direct rendering, so
+    // the model never white-screens because of post-processing.
+    let effectComposer: import('postprocessing').EffectComposer | null = null;
+    let disposed = false;
+
     scene.add(new THREE.HemisphereLight('#bbc5c0', '#141718', 1.55));
     const moon = new THREE.DirectionalLight('#acb9b7', 2.1);
     moon.position.set(-8, 14, 5);
@@ -292,8 +301,61 @@ export default function VillageCanvas({ selectedId, onSelect, chapterTitles = []
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
+      effectComposer?.setSize(width, height);
     });
     resize.observe(element);
+
+    // Lazy post-processing stack. Luminance threshold keeps bloom on the warm
+    // lantern/marker emissives only (a Chinese night street must not glow
+    // candy-bright). The in-canvas vignette stays gentle because the app shell
+    // already has a CSS readability gradient; combined they frame the scene
+    // without double-black corners. Grain is dynamic, so it is skipped for
+    // reduced-motion users and on small screens (perf + motion comfort).
+    // Software rasterizers (SwiftShader/llvmpipe in headless CI, GPU-less
+    // machines) skip the composer entirely: several full-screen passes would
+    // saturate the CPU there. `?fx=1` forces the stack on for QA screenshots.
+    let softwareRenderer = false;
+    try {
+      const gl = renderer.getContext();
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      const rendererName = debugInfo ? String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) ?? '') : '';
+      softwareRenderer = /swiftshader|llvmpipe|softpipe|software/i.test(rendererName);
+    } catch { softwareRenderer = false; }
+    const forceFx = new URLSearchParams(window.location.search).has('fx');
+    const smallScreen = window.matchMedia('(max-width: 768px)').matches;
+    if (!softwareRenderer || forceFx) void import('postprocessing').then((pp) => {
+      if (disposed) return;
+      try {
+        const composer = new pp.EffectComposer(renderer, { multisampling: 0 });
+        composer.addPass(new pp.RenderPass(scene, camera));
+        const bloom = new pp.BloomEffect({
+          mipmapBlur: true,
+          luminanceThreshold: 0.6,
+          luminanceSmoothing: 0.22,
+          intensity: 0.85,
+          radius: 0.72,
+        });
+        composer.addPass(new pp.EffectPass(camera, bloom));
+        const finishing: import('postprocessing').Effect[] = [
+          // three.js skips tone mapping when rendering into the composer's
+          // target, so re-apply the same ACES curve the direct path uses.
+          new pp.ToneMappingEffect({ mode: pp.ToneMappingMode.ACES_FILMIC }),
+          new pp.VignetteEffect({ offset: 0.3, darkness: 0.52 }),
+        ];
+        if (!reduceMotion && !smallScreen) {
+          const noise = new pp.NoiseEffect({ blendFunction: pp.BlendFunction.OVERLAY });
+          noise.blendMode.opacity.value = 0.06;
+          finishing.push(noise);
+        }
+        composer.addPass(new pp.EffectPass(camera, ...finishing));
+        if (element.clientWidth && element.clientHeight) {
+          composer.setSize(element.clientWidth, element.clientHeight);
+        }
+        effectComposer = composer;
+      } catch {
+        effectComposer = null;
+      }
+    }).catch(() => { effectComposer = null; });
 
     let frame = 0;
     let lastFrame = 0;
@@ -325,11 +387,15 @@ export default function VillageCanvas({ selectedId, onSelect, chapterTitles = []
           }
         }
       });
-      renderer.render(scene, camera);
+      if (effectComposer) effectComposer.render();
+      else renderer.render(scene, camera);
     };
     render(34);
 
     return () => {
+      disposed = true;
+      effectComposer?.dispose();
+      effectComposer = null;
       cancelAnimationFrame(animation);
       resize.disconnect();
       renderer.domElement.removeEventListener('click', onClick);
