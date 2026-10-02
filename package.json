@@ -15,7 +15,9 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.10.0",
     "inkjs": "^2.4.0",
+    "motion": "^13.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "three": "^0.186.0"
