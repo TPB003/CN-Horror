@@ -540,3 +540,155 @@ button:disabled { opacity: .38; cursor: not-allowed; }
   .explore-entry { flex-direction: column; align-items: stretch; gap: 8px; }
   .inventory-sheet { width: 100%; border-left: 0; border-top: 1px solid var(--border); top: auto; height: 62%; }
 }
+
+/* ================= 中式恐怖视觉总纲 2.0 =================
+   目标：从"干净的暗黑模板"变成"有纸纹、有做旧、有符纸味"。
+   全部是表现层：不动交互逻辑、不改文案。 */
+
+:root {
+  --joss: #d4c08a;        /* 纸黄：符纸/纸钱 */
+  --cinnabar: #c73e2e;    /* 鲜朱砂：关键强调 */
+  --mourning: #efe9dc;    /* 孝白 */
+  --kaiti: 'Kaiti SC', 'STKaiti', 'KaiTi', '楷体', serif;
+  --seal: 'STZhongsong', 'STKaiti', 'Kaiti SC', serif; /* 数字编号：旧刻感 fallback */
+}
+
+/* ---- 1. 全局纸纹理系统 ---- */
+/* 极淡的纸纹 overlay：全站，multiply 压一点暖灰 */
+.app-shell::before {
+  content: ''; position: absolute; inset: 0; z-index: 70; pointer-events: none;
+  opacity: .42; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.23 0 0 0 0 0.19 0 0 0 0 0.13 0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+/* viewport 边缘烧痕/暗角：棕黑色，不是纯黑 */
+.app-shell::after {
+  content: ''; position: absolute; inset: 0; z-index: 69; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 52%, rgba(26,13,6,.30) 80%, rgba(14,7,3,.58) 100%);
+}
+/* 面板做旧：暖色内阴影，是"旧"不是"脏" */
+.overlay-panel, .hotspot-card, .puzzle-sheet, .inventory-sheet, .interaction-card, .skip-confirm, .ending-choices {
+  box-shadow: inset 0 0 70px rgba(74,48,22,.10), inset 0 1px 0 rgba(212,192,138,.06);
+}
+
+/* ---- 2. 字体人格化 ---- */
+/* UI 标签/按钮/热点：楷体 */
+.primary-button, .inspect-button, .quiet-button, .icon-button,
+.choice-deck button, .explore-hotspot-button, .hotspot-kind,
+.codex-filters button, .sources-tabs button, .chapter-nav button,
+.puzzle-input button, .dial-turn, .dial-value, .lamp-name,
+.item-name, .map-locations button, .chapter-dot, .npc-mark,
+.interaction-icon, .brand-seal, .hotspot-card-head h3,
+.puzzle-panel h3, .skip-confirm h2, .ending-choices button {
+  font-family: var(--kaiti);
+}
+/* 叙事正文：宋体 + 纸感行距 */
+.story-text { font-family: var(--serif); line-height: 2.12; }
+/* 大标题：保持 serif，加重字距 + 孝白 */
+.intro-copy h1, .chapter-copy h1, .ending-copy h1 { color: var(--mourning); letter-spacing: .16em; }
+/* 朱砂点缀：关键强调处用鲜朱砂 */
+.intro-copy h1 > .intro-title-comma, .eyebrow > .eyebrow-dash { color: var(--cinnabar); }
+.eyebrow > .eyebrow-dash { background: var(--cinnabar); }
+/* 数字编号：旧刻感 */
+.chapter-number, .journal-number, .intro-index b, .map-locations small { font-family: var(--seal); }
+
+/* ---- 3. 组件"物化" ---- */
+/* 主按钮 → 牌位式：深底 + 描金字 + 顶部小披檐 */
+.primary-button {
+  position: relative;
+  background: linear-gradient(180deg, #241a11, #100b07 72%);
+  border: 1px solid rgba(216,175,106,.55);
+  color: #eed096;
+  box-shadow: 0 7px 30px rgba(64,18,13,.18), inset 0 1px 0 rgba(238,208,150,.12);
+}
+.primary-button::before {
+  content: ''; position: absolute; left: -8px; right: -8px; top: -10px; height: 10px;
+  background: linear-gradient(180deg, #43301b, #170e06);
+  clip-path: polygon(5% 0, 95% 0, 100% 100%, 0 100%);
+}
+.primary-button:hover { filter: brightness(1.15); }
+/* 次按钮 → 符纸式：纸黄底 + 赭字 + 四角小符纹 */
+.inspect-button {
+  background:
+    radial-gradient(circle at 7px 7px, rgba(140,45,28,.9) 1.8px, transparent 2.5px),
+    radial-gradient(circle at calc(100% - 7px) 7px, rgba(140,45,28,.9) 1.8px, transparent 2.5px),
+    radial-gradient(circle at 7px calc(100% - 7px), rgba(140,45,28,.9) 1.8px, transparent 2.5px),
+    radial-gradient(circle at calc(100% - 7px) calc(100% - 7px), rgba(140,45,28,.9) 1.8px, transparent 2.5px),
+    linear-gradient(180deg, #dcc78f, #c6a76f);
+  border: 1px solid rgba(120,60,30,.6);
+  color: #5c2115;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 0 14px rgba(120,70,20,.20);
+}
+.inspect-button:hover { filter: brightness(1.07); }
+/* 面板分隔线 → 剪纸齿纹（钱串式虚线） */
+.chapter-footer {
+  border-top: 2px solid transparent;
+  border-image: repeating-linear-gradient(90deg, rgba(212,175,106,.5) 0 9px, transparent 9px 17px) 1;
+}
+.panel-header {
+  border-bottom: 2px solid transparent;
+  border-image: repeating-linear-gradient(90deg, rgba(212,175,106,.4) 0 9px, transparent 9px 17px) 1;
+}
+/* 民俗志条目卡 → 线装书式：左侧两道装订线 */
+.codex-item {
+  position: relative;
+  padding-left: 20px;
+  background:
+    linear-gradient(180deg, rgba(212,175,106,.55), rgba(212,175,106,.55)) left 0 top 14px / 1px calc(100% - 28px) no-repeat,
+    linear-gradient(180deg, rgba(212,175,106,.30), rgba(212,175,106,.30)) left 6px top 14px / 1px calc(100% - 28px) no-repeat;
+}
+/* 热点按钮 → 铜钱点：圆点中心开方孔 */
+.explore-hotspot-button .hotspot-dot { position: relative; }
+.explore-hotspot-button .hotspot-dot::after {
+  content: ''; position: absolute; left: 3px; top: 3px; width: 4px; height: 4px;
+  background: rgba(8,11,12,.92);
+}
+
+/* ---- 4. 开场屏强化 ---- */
+/* 引魂幡式竖排小字 */
+.intro-copy { position: relative; z-index: 1; }
+.intro-copy::before {
+  content: '引魂归里';
+  position: absolute; left: -54px; top: 4px;
+  writing-mode: vertical-rl;
+  font-family: var(--kaiti); font-size: 13px; letter-spacing: .55em;
+  color: rgba(199,62,46,.62);
+  border-left: 1px solid rgba(199,62,46,.28); padding-left: 9px;
+  pointer-events: none;
+}
+/* 纸钱飘落：两层不同速度/颜色（纸黄 + 染朱红） */
+.intro-screen::before, .intro-screen::after {
+  content: ''; position: absolute; top: -10vh; z-index: 0; pointer-events: none;
+  width: 7px; height: 10px; opacity: 0;
+}
+.intro-screen::before {
+  left: 12%;
+  background: #d4c08a;
+  box-shadow:
+    12vw 6vh 0 -1px #d4c08a, 28vw -4vh 0 -2px #c9b078, 45vw 10vh 0 -1px #d4c08a,
+    63vw -6vh 0 -2px #cbb37e, 78vw 4vh 0 -1px #d4c08a, 90vw -8vh 0 -2px #c9b078,
+    20vw 22vh 0 -2px #d4c08a, 55vw 26vh 0 -1px #cbb37e, 82vw 20vh 0 -2px #d4c08a;
+  animation: paper-fall 17s linear infinite;
+}
+.intro-screen::after {
+  left: 38%;
+  background: #c73e2e;
+  box-shadow:
+    8vw -5vh 0 -2px #c73e2e, 30vw 8vh 0 -1px #a93426, 52vw -3vh 0 -2px #c73e2e,
+    70vw 9vh 0 -1px #b23a2b, 88vw -6vh 0 -2px #c73e2e, 15vw 18vh 0 -1px #a93426;
+  animation: paper-fall 26s linear infinite; animation-delay: -9s;
+}
+@keyframes paper-fall {
+  0% { transform: translate3d(0,-12vh,0) rotate(0deg); opacity: 0; }
+  7% { opacity: .8; }
+  90% { opacity: .75; }
+  100% { transform: translate3d(-7vw,118vh,0) rotate(340deg); opacity: 0; }
+}
+
+/* ---- 5. 移动端与无障碍 ---- */
+@media (max-width: 700px) {
+  .intro-copy::before { display: none; } /* 小屏不挤竖排幡 */
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-screen::before, .intro-screen::after { display: none; } /* 纸钱飘落是纯装饰 */
+  .app-shell::before, .app-shell::after { opacity: .25; } /* 纹理静止保留，只降存在感 */
+}
