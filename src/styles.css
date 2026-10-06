@@ -437,9 +437,9 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .explore-hotspot-button { position: absolute; z-index: 3; min-width: 44px; min-height: 44px; padding: 6px 10px; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 7px; border: 1px solid rgba(222,216,201,.28); border-radius: 22px; background: rgba(8,11,12,.68); color: var(--bone); font-size: 11px; letter-spacing: .08em; cursor: pointer; backdrop-filter: blur(3px); transition: border-color .2s, background .2s, transform .2s; }
 .explore-hotspot-button:hover, .explore-hotspot-button:focus-visible { border-color: var(--lamp); background: rgba(20,16,10,.85); }
 .explore-hotspot-button .hotspot-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.explore-hotspot-button.kind-investigate .hotspot-dot { background: #c5a875; box-shadow: 0 0 8px #c5a875; }
-.explore-hotspot-button.kind-pickup .hotspot-dot { background: #7fa88f; box-shadow: 0 0 8px #7fa88f; }
-.explore-hotspot-button.kind-puzzle .hotspot-dot { background: #a93d32; box-shadow: 0 0 10px #a93d32; }
+.explore-hotspot-button.kind-investigate .hotspot-dot { --dot-bg: #c5a875; box-shadow: 0 0 8px #c5a875; }
+.explore-hotspot-button.kind-pickup .hotspot-dot { --dot-bg: #7fa88f; box-shadow: 0 0 8px #7fa88f; }
+.explore-hotspot-button.kind-puzzle .hotspot-dot { --dot-bg: #a93d32; box-shadow: 0 0 10px #a93d32; }
 .explore-hotspot-button.is-dimmed { opacity: .45; }
 .explore-hotspot-button.is-dimmed .hotspot-dot { box-shadow: none; }
 .explore-hotspot-button .hotspot-tag { white-space: nowrap; }
@@ -554,20 +554,25 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 }
 
 /* ---- 1. 全局纸纹理系统 ---- */
-/* 极淡的纸纹 overlay：全站，multiply 压一点暖灰 */
+/* 极淡的纸纹 overlay：全站。不用 mix-blend-mode（高负载下拖慢合成），纯低透明度叠加 */
 .app-shell::before {
   content: ''; position: absolute; inset: 0; z-index: 70; pointer-events: none;
-  opacity: .42; mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.23 0 0 0 0 0.19 0 0 0 0 0.13 0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23p)'/%3E%3C/svg%3E");
+  opacity: .16;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.23 0 0 0 0 0.19 0 0 0 0 0.13 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)'/%3E%3C/svg%3E");
 }
 /* viewport 边缘烧痕/暗角：棕黑色，不是纯黑 */
 .app-shell::after {
   content: ''; position: absolute; inset: 0; z-index: 69; pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 52%, rgba(26,13,6,.30) 80%, rgba(14,7,3,.58) 100%);
 }
-/* 面板做旧：暖色内阴影，是"旧"不是"脏" */
+/* 3D 探索时隐藏纸纹理/暗角：避免与 WebGL 画布每帧合成拖慢主线程 */
+.app-shell:has(.explore-overlay)::before,
+.app-shell:has(.explore-overlay)::after {
+  display: none;
+}
+/* 面板做旧：暖色内阴影，是"旧"不是"脏"。模糊半径保守，避免高负载下合成卡顿 */
 .overlay-panel, .hotspot-card, .puzzle-sheet, .inventory-sheet, .interaction-card, .skip-confirm, .ending-choices {
-  box-shadow: inset 0 0 70px rgba(74,48,22,.10), inset 0 1px 0 rgba(212,192,138,.06);
+  box-shadow: inset 0 0 24px rgba(74,48,22,.10), inset 0 1px 0 rgba(212,192,138,.06);
 }
 
 /* ---- 2. 字体人格化 ---- */
@@ -592,29 +597,24 @@ button:disabled { opacity: .38; cursor: not-allowed; }
 .chapter-number, .journal-number, .intro-index b, .map-locations small { font-family: var(--seal); }
 
 /* ---- 3. 组件"物化" ---- */
-/* 主按钮 → 牌位式：深底 + 描金字 + 顶部小披檐 */
+/* 主按钮 → 牌位式：深底 + 描金字 + 顶部小披檐（画进背景，避免伪元素 clip-path 影响稳定性） */
 .primary-button {
   position: relative;
-  background: linear-gradient(180deg, #241a11, #100b07 72%);
+  background:
+    linear-gradient(180deg, #4a3520 0, #1c1109 8px, transparent 8px),
+    linear-gradient(180deg, #241a11, #100b07 72%);
   border: 1px solid rgba(216,175,106,.55);
+  border-top-color: rgba(216,175,106,.8);
   color: #eed096;
   box-shadow: 0 7px 30px rgba(64,18,13,.18), inset 0 1px 0 rgba(238,208,150,.12);
 }
-.primary-button::before {
-  content: ''; position: absolute; left: -8px; right: -8px; top: -10px; height: 10px;
-  background: linear-gradient(180deg, #43301b, #170e06);
-  clip-path: polygon(5% 0, 95% 0, 100% 100%, 0 100%);
-}
 .primary-button:hover { filter: brightness(1.15); }
-/* 次按钮 → 符纸式：纸黄底 + 赭字 + 四角小符纹 */
+/* 次按钮 → 符纸式：纸黄底 + 赭字 + 四角小符纹（用 border-image 思路的简化版：单层背景 + outline 点缀） */
 .inspect-button {
-  background:
-    radial-gradient(circle at 7px 7px, rgba(140,45,28,.9) 1.8px, transparent 2.5px),
-    radial-gradient(circle at calc(100% - 7px) 7px, rgba(140,45,28,.9) 1.8px, transparent 2.5px),
-    radial-gradient(circle at 7px calc(100% - 7px), rgba(140,45,28,.9) 1.8px, transparent 2.5px),
-    radial-gradient(circle at calc(100% - 7px) calc(100% - 7px), rgba(140,45,28,.9) 1.8px, transparent 2.5px),
-    linear-gradient(180deg, #dcc78f, #c6a76f);
+  background: linear-gradient(180deg, #dcc78f, #c6a76f);
   border: 1px solid rgba(120,60,30,.6);
+  outline: 1px dotted rgba(140,45,28,.5);
+  outline-offset: -5px;
   color: #5c2115;
   box-shadow: 0 4px 14px rgba(0,0,0,.35), inset 0 0 14px rgba(120,70,20,.20);
 }
@@ -636,11 +636,12 @@ button:disabled { opacity: .38; cursor: not-allowed; }
     linear-gradient(180deg, rgba(212,175,106,.55), rgba(212,175,106,.55)) left 0 top 14px / 1px calc(100% - 28px) no-repeat,
     linear-gradient(180deg, rgba(212,175,106,.30), rgba(212,175,106,.30)) left 6px top 14px / 1px calc(100% - 28px) no-repeat;
 }
-/* 热点按钮 → 铜钱点：圆点中心开方孔 */
-.explore-hotspot-button .hotspot-dot { position: relative; }
-.explore-hotspot-button .hotspot-dot::after {
-  content: ''; position: absolute; left: 3px; top: 3px; width: 4px; height: 4px;
-  background: rgba(8,11,12,.92);
+/* 热点按钮 → 铜钱点：圆点中心开方孔（画进背景，避免伪元素影响稳定性） */
+.explore-hotspot-button .hotspot-dot {
+  --dot-bg: #c5a875;
+  background:
+    linear-gradient(rgba(8,11,12,.92), rgba(8,11,12,.92)) center/4px 4px no-repeat,
+    var(--dot-bg);
 }
 
 /* ---- 4. 开场屏强化 ---- */
