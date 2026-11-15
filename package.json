@@ -20,7 +20,7 @@
     "@tsparticles/react": "^4.4.0",
     "@tsparticles/slim": "^4.4.0",
     "inkjs": "^2.4.0",
-    "motion": "^13.5.0",
+    "motion": "^14.12.0",
     "postprocessing": "^6.39.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
