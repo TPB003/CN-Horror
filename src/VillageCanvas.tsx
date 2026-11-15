@@ -320,7 +320,9 @@ export default function VillageCanvas({ selectedId, onSelect, chapterTitles = []
       const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
       const rendererName = debugInfo ? String(gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) ?? '') : '';
       softwareRenderer = /swiftshader|llvmpipe|softpipe|software/i.test(rendererName);
-    } catch { softwareRenderer = false; }
+    } catch {
+      // Renderer name is optional. A failed probe keeps the hardware default.
+    }
     const forceFx = new URLSearchParams(window.location.search).has('fx');
     const smallScreen = window.matchMedia('(max-width: 768px)').matches;
     if (!softwareRenderer || forceFx) void import('postprocessing').then((pp) => {

@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 test('phase3 screenshots: desktop explore + mobile explore', async ({ page }) => {
+  // Two WebGL journeys plus settle time. CI runners with 2 workers exceed the 90s default.
+  test.setTimeout(180_000);
   // Desktop
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
@@ -18,9 +20,9 @@ test('phase3 screenshots: desktop explore + mobile explore', async ({ page }) =>
   await page.screenshot({ path: '/tmp/phase3-desktop-divination.png' });
   await page.getByRole('button', { name: '离开现场，返回叙事' }).click();
 
-  // Mobile
+  // Mobile. Clear the desktop save first so the reload opens the intro
+  // instead of painting the saved chapter and then discarding it.
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.goto('/');
   await page.getByRole('button', { name: '举灯入巷' }).click();

@@ -1,5 +1,8 @@
 # 《归灯》：连云老街异闻
 
+[![CI](https://github.com/TPB003/CN-Horror/actions/workflows/ci.yml/badge.svg)](https://github.com/TPB003/CN-Horror/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 《归灯》是一款 React + TypeScript + Vite 互动恐怖故事应用。玩家在一夜之间沿着连云港老街的十二个剧情站点查明一桩“错名与归魂”的旧案。每个站点占据一个完整画面；章节通过按钮、键盘或街区路线模型切换，不靠页面滚轮浏览。
 
 故事、声音、线索和三维路线共同构成体验。沈归收到母亲沈映禾留下的信后回到老街，追查2006年暴雨夜的错名旧案：红衣新娘顾秋禾与港口捞起的无名尸体陆守成随两支队伍在石巷相遇，雨水冲淡客簿上的姓名；八岁的沈归落水，沈映禾救他上岸后被潮水带走。她以自己的姓名登记，并写下“带沈归归家”的去向，梁叔却把水痕里残存的“沈｜归家”误抄成“沈归”。笔仙、僵尸、红白队影和黑白无常将这场家庭悲剧转成逐站调查与恐怖体验。结尾沈归可以写回三人的姓名与去向、点灯送母亲离开，也可以在母亲离开后接过黄灯守巷。真实街区资料只用于地理与文化背景；人物、客簿和灵异因果均为虚构。
@@ -27,6 +30,7 @@ npm run dev
 执行质量检查和生产构建：
 
 ```powershell
+npm run lint
 npm run typecheck
 npm test
 npm run story:validate
@@ -57,8 +61,16 @@ Vite 会把可部署文件写入 `dist/`。剧情有更新时，先运行 `npm r
 | `docs/player-experience-audit.md` | 玩家体验与无障碍发版验收表 |
 | `docs/architecture.md` | 故事编译、React/Three.js/InkJS 模块边界与部署数据流 |
 | `docs/deployment.md` | Cloudflare Pages 构建与发布配置 |
-| `AGENTS.md`, `CONTRIBUTING.md` | 项目规则、来源要求、分支与审查流程 |
+| `AGENTS.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md` | 项目规则、贡献流程、行为准则与安全报告 |
 | `dist/` | Vite 构建输出；不要直接手工编辑 |
+
+## 参与贡献
+
+问题和改动请使用 Issue 与 Pull Request。开始之前先看：
+
+- [贡献指南](CONTRIBUTING.md)：本地环境、分支命名、Conventional Commits、代码风格和合并门槛
+- [行为准则](CODE_OF_CONDUCT.md)
+- [安全政策](SECURITY.md)：漏洞请私下报告
 
 ## Cloudflare Pages
 

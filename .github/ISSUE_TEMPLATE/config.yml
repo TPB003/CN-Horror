@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞
+    url: https://github.com/TPB003/CN-Horror/security/advisories/new
+    about: 请私下报告安全问题。不要在公开 issue 里写利用步骤或凭据。
+  - name: 贡献指南
+    url: https://github.com/TPB003/CN-Horror/blob/main/CONTRIBUTING.md
+    about: 本地环境、分支命名、提交说明、代码风格和合并门槛。
+  - name: 行为准则
+    url: https://github.com/TPB003/CN-Horror/blob/main/CODE_OF_CONDUCT.md
+    about: 社区参与方式，以及如何向维护者私下报告不当行为。
