@@ -1,0 +1,98 @@
+# GitHub 标签定义。颜色为不带 # 的 6 位十六进制，与 Labels API 一致。
+# 本文件只描述标签；创建或同步由维护者另行执行。
+
+- name: bug
+  color: "d73a4a"
+  description: 可以复现的缺陷、回归或错误行为
+
+- name: enhancement
+  color: "a2eeef"
+  description: 新功能或玩家体验改进
+
+- name: documentation
+  color: "0075ca"
+  description: 文档、仓库说明或注释
+
+- name: good first issue
+  color: "7057ff"
+  description: 范围清楚，适合第一次贡献
+
+- name: help wanted
+  color: "008672"
+  description: 维护者希望社区协助
+
+- name: question
+  color: "d876e3"
+  description: 需要维护者进一步说明的问题
+
+- name: duplicate
+  color: "cfd3d7"
+  description: 与已有 issue 或 pull request 重复
+
+- name: wontfix
+  color: "ffffff"
+  description: 已经决定不做
+
+- name: invalid
+  color: "e4e669"
+  description: 无法复现，或超出本仓库范围
+
+- name: "priority: critical"
+  color: "b60205"
+  description: 阻塞游玩、构建或发布
+
+- name: "priority: high"
+  color: "d93f0b"
+  description: 应优先处理
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: 按正常节奏处理
+
+- name: "priority: low"
+  color: "0e8a16"
+  description: 可以延后
+
+- name: "area: story"
+  color: "5319e7"
+  description: Ink 剧情、章节、线索与结局
+
+- name: "area: ui"
+  color: "1d76db"
+  description: React 界面、交互与样式
+
+- name: "area: audio"
+  color: "54aeff"
+  description: 声景、静音与音量
+
+- name: "area: 3d"
+  color: "006b75"
+  description: Three.js 街区沙盘与路线热点
+
+- name: "area: novel"
+  color: "f9d0c4"
+  description: 由故事源导出的小说
+
+- name: "area: assets"
+  color: "e99695"
+  description: 场景、道具素材与权利登记
+
+- name: "area: sources"
+  color: "8a5a00"
+  description: 史料来源、考据与创作转译
+
+- name: "area: a11y"
+  color: "bfdadc"
+  description: 键盘、焦点、减少动效与非音频线索
+
+- name: "area: ci"
+  color: "c2e0c6"
+  description: 持续集成、脚本与依赖维护
+
+- name: dependencies
+  color: "0366d6"
+  description: 依赖升级，含 Dependabot
+
+- name: security
+  color: "ee0701"
+  description: 安全问题；利用细节请走私下报告，不要写进公开讨论
